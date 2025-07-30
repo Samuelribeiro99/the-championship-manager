@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'auth_page.dart';
+import 'package:app/theme/app_colors.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,24 +20,68 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'The Championship Manager', // Você pode alterar o título aqui
+      
+      // --- INÍCIO DA MUDANÇA DO TEMA ---
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        // Ponto de partida para um tema escuro, com fontes claras por padrão
+        brightness: Brightness.dark, 
+        
+        // Cor de destaque (opcional, pode ajustar)
+        primarySwatch: Colors.green, 
+
+        // Define o estilo padrão para TODAS as AppBars do seu app
+        appBarTheme: const AppBarTheme(
+          titleTextStyle: TextStyle(
+            color: Colors.white, 
+            fontSize: 20, 
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+
+        // Define o estilo padrão para TODOS os TextFields
+        inputDecorationTheme: InputDecorationTheme(
+          // Cor do texto do label (ex: "Email", "Senha")
+          labelStyle: TextStyle(color: Colors.white70), // Um branco mais suave
+          
+          // Estilo da borda quando o campo não está focado
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: BorderSide(
+              width: 7.0,
+              color: AppColors.borderYellow,
+            ), // Um branco transparente
+          ),
+
+          // Estilo da borda quando o campo está focado
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: BorderSide(
+              width: 5.0,
+              color: AppColors.borderYellow,
+            ),
+          ),
+        ),
+
+        // Define o estilo padrão para TODOS os TextButtons
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.white, // Cor do texto do TextButton
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.borderYellow,
+            minimumSize: const Size(50, 50),
+            side: const BorderSide(
+              width: 7.0,
+              color: AppColors.borderYellow,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+          ),
+        ),
       ),
       home: const AuthPage(),
     );
