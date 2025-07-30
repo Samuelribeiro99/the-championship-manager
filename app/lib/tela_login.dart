@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'tela_cadastro.dart'; // Importa a tela de cadastro para navegação
+import 'package:app/widgets/background_scaffold.dart';
+import 'package:app/theme/app_colors.dart';
 
 class TelaLogin extends StatefulWidget {
   const TelaLogin({super.key});
@@ -55,37 +57,81 @@ class _TelaLoginState extends State<TelaLogin> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
-              keyboardType: TextInputType.emailAddress,
+    // Agora não passamos mais uma AppBar para o nosso layout de fundo
+    return BackgroundScaffold(
+      body: Stack(
+        children: [
+          // --- ITEM 1: O CONTEÚDO PRINCIPAL (CAMPOS E BOTÕES) ---
+          // Colocamos o conteúdo principal dentro de um SafeArea para evitar
+          // que ele fique atrás da barra de status do celular.
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Seus TextFields e Botões continuam aqui
+                  TextField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(labelText: 'Email'),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _passwordController,
+                    decoration: const InputDecoration(labelText: 'Senha'),
+                    obscureText: true,
+                  ),
+                  const SizedBox(height: 32),
+                  Center(
+                    child: OutlinedButton(
+                      onPressed: _loading ? null : _login,
+                      style: OutlinedButton.styleFrom().copyWith(
+                        minimumSize: MaterialStateProperty.all(const Size(200, 50)),
+                      ),
+                      child: _loading 
+                          ? CircularProgressIndicator(color: AppColors.borderYellow) 
+                          : const Text('ENTRAR'),
+                    ),
+                  ),
+                  const SizedBox(height: 100),
+                  const Text('Não tem uma conta?'),
+                  OutlinedButton(
+                    onPressed: _irParaTelaCadastro,
+                    style: OutlinedButton.styleFrom().copyWith(
+                      // Define um tamanho fixo menor
+                      minimumSize: WidgetStateProperty.all(const Size(100, 35)), 
+                      // Talvez uma borda um pouco mais fina para ser mais sutil
+                      side: WidgetStateProperty.all(
+                        const BorderSide(
+                          width: 5.0, 
+                          color: AppColors.borderYellow,
+                        ),
+                      ),
+                    ),
+                    child: const Text('CADASTRE-SE'),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Senha', border: OutlineInputBorder()),
-              obscureText: true,
+          ),
+
+          // --- ITEM 2: O TÍTULO "LOGIN" POSICIONADO LIVREMENTE ---
+          // O Align nos permite posicionar seu filho dentro do Stack.
+          Align(
+            // Alignment(x, y): x=-1.0 (esquerda), x=1.0 (direita)
+            //                  y=-1.0 (topo),    y=1.0 (fundo)
+            alignment: const Alignment(-0.8, -0.8), // Centralizado horizontalmente, um pouco abaixo do topo
+            child: const Text(
+              'Login',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _loading ? null : _login,
-              style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
-              child: _loading ? const CircularProgressIndicator(color: Colors.white) : const Text('ENTRAR'),
-            ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: _irParaTelaCadastro,
-              child: const Text('Não tem uma conta? Cadastre-se'),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
