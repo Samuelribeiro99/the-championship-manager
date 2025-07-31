@@ -87,7 +87,7 @@ class _TelaLoginState extends State<TelaLogin> {
                     child: OutlinedButton(
                       onPressed: _loading ? null : _login,
                       style: OutlinedButton.styleFrom().copyWith(
-                        minimumSize: MaterialStateProperty.all(const Size(200, 50)),
+                        minimumSize: WidgetStateProperty.all(const Size(200, 50)),
                       ),
                       child: _loading 
                           ? CircularProgressIndicator(color: AppColors.borderYellow) 
@@ -121,12 +121,12 @@ class _TelaLoginState extends State<TelaLogin> {
           Align(
             // Alignment(x, y): x=-1.0 (esquerda), x=1.0 (direita)
             //                  y=-1.0 (topo),    y=1.0 (fundo)
-            alignment: const Alignment(-0.8, -0.8), // Centralizado horizontalmente, um pouco abaixo do topo
+            alignment: const Alignment(-0.0, -0.85), // Centralizado horizontalmente, um pouco abaixo do topo
             child: const Text(
               'Login',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 28,
+                fontSize: 32,
                 fontWeight: FontWeight.bold,
               ),
             ),

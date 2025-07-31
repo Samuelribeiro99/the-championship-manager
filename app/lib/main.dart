@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
             borderSide: BorderSide(
-              width: 7.0,
+              width: 5.0,
               color: AppColors.borderYellow,
             ), // Um branco transparente
           ),
@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
             borderSide: BorderSide(
-              width: 5.0,
+              width: 7.0,
               color: AppColors.borderYellow,
             ),
           ),
@@ -74,7 +74,7 @@ class MyApp extends StatelessWidget {
             foregroundColor: AppColors.borderYellow,
             minimumSize: const Size(50, 50),
             side: const BorderSide(
-              width: 7.0,
+              width: 5.0,
               color: AppColors.borderYellow,
             ),
             shape: RoundedRectangleBorder(

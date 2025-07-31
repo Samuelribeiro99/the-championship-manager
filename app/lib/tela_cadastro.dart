@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:app/widgets/background_scaffold.dart';
+import 'package:app/widgets/square_icon_button.dart'; // Ajuste o caminho
 
 class TelaCadastro extends StatefulWidget {
   const TelaCadastro({super.key});
@@ -64,7 +66,8 @@ class _TelaCadastroState extends State<TelaCadastro> {
   // --- Lógica de Cadastro ---
 
   Future<void> _cadastrar() async {
-    // Validação final antes de enviar
+    // --- Validação local (continua a mesma) ---
+    final String password = _passwordController.text;
     if (!_tem8Caracteres || !_temLetraMaiuscula || !_temNumero || !_temCaractereEspecial) {
       _exibirAlerta('A senha não atende a todos os requisitos.');
       return;
@@ -73,19 +76,36 @@ class _TelaCadastroState extends State<TelaCadastro> {
       _exibirAlerta('As senhas não conferem.');
       return;
     }
+    // --- Fim da validação ---
 
     setState(() { _loading = true; });
-    
+
     try {
+      final String email = _emailController.text.trim();
+
+      // Esta linha cria o usuário E JÁ FAZ O LOGIN automaticamente
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+        email: email,
+        password: password,
       );
-      if (mounted) _exibirAlerta('Usuário cadastrado com sucesso!', success: true);
+
+      // Se o widget ainda estiver montado, faz a navegação
+      if (mounted) {
+        // Navega para a AuthPage (que vai mostrar a tela principal)
+        // e remove todas as telas anteriores (login, cadastro) do histórico.
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+
     } on FirebaseAuthException catch (e) {
-      if (mounted) _exibirAlerta('Erro ao cadastrar: ${e.message}');
+      if (mounted) {
+        _exibirAlerta('Erro ao cadastrar: ${e.message}');
+      }
     } finally {
-      if (mounted) setState(() { _loading = false; });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -102,68 +122,99 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
   @override
   Widget build(BuildContext context) {
-    // NOVO: Verifica se todos os requisitos da senha foram atendidos
     bool todosRequisitosAtendidos = _tem8Caracteres && _temLetraMaiuscula && _temNumero && _temCaractereEspecial;
+    final bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            // Fecha a tela de cadastro e volta para a de login
-            Navigator.of(context).pop();
-          },
-        ),
-        title: const Text('Cadastre-se'),
-      ),
-      body: SingleChildScrollView( // Evita que o teclado cubra os campos
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
-                keyboardType: TextInputType.emailAddress,
+    // A estrutura principal agora é um Stack, dentro do nosso BackgroundScaffold
+    return BackgroundScaffold(
+      body: Stack(
+        children: [
+          // --- ITEM 1: TÍTULO "CADASTRE-SE" POSICIONADO LIVREMENTE NO TOPO ---
+          Align(
+            alignment: const Alignment(0.0, -0.85),
+            child: const Text(
+              'Cadastre-se',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Senha', border: OutlineInputBorder()),
-                obscureText: true,
-              ),
-              const SizedBox(height: 16),
-              
-              // NOVO: Renderização condicional da lista de requisitos
-              if (_passwordController.text.isNotEmpty && !todosRequisitosAtendidos)
-                _buildRequisitosSenha(),
-              
-              TextField(
-                controller: _confirmPasswordController,
-                decoration: const InputDecoration(labelText: 'Confirmar Senha', border: OutlineInputBorder()),
-                obscureText: true,
-              ),
-              const SizedBox(height: 8),
-
-              // NOVO: Renderização condicional da mensagem de erro de confirmação
-              if (_confirmPasswordController.text.isNotEmpty)
-                _buildLinhaRequisito('As senhas devem ser iguais', _senhasConferem),            
-              
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _loading ? null : _cadastrar,
-                style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
-                child: _loading ? const CircularProgressIndicator(color: Colors.white) : const Text('CADASTRAR'),
-              )
-            ],
+            ),
           ),
-        ),
+
+          // --- ITEM 2: CONTEÚDO PRINCIPAL (O FORMULÁRIO) ---
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Espaço para não ficar atrás do título flutuante
+                    const SizedBox(height: 120),
+
+                    TextField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(labelText: 'Email'),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _passwordController,
+                      decoration: const InputDecoration(labelText: 'Senha'),
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    if (_passwordController.text.isNotEmpty && !todosRequisitosAtendidos)
+                      _buildRequisitosSenha(),
+                    
+                    TextField(
+                      controller: _confirmPasswordController,
+                      decoration: const InputDecoration(labelText: 'Confirmar Senha'),
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 8),
+
+                    if (_confirmPasswordController.text.isNotEmpty)
+                      _buildLinhaRequisito('As senhas devem ser iguais', _senhasConferem),
+                    
+                    const SizedBox(height: 32),
+                    
+                    // Converti seu ElevatedButton para um OutlinedButton para manter o estilo
+                    Center(
+                      child: OutlinedButton(
+                        onPressed: _loading ? null : _cadastrar,
+                        style: OutlinedButton.styleFrom().copyWith(
+                          minimumSize: WidgetStateProperty.all(const Size(200, 50)),
+                        ),
+                        child: _loading 
+                            ? const CircularProgressIndicator(color: Colors.white) 
+                            : const Text('CADASTRAR'),
+                      ),
+                    ),
+                    const SizedBox(height: 50), // Espaço antes do botão de voltar
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // --- ITEM 3: BOTÃO DE VOLTAR POSICIONADO NO CANTO INFERIOR ESQUERDO ---
+          Positioned(
+            left: 20,
+            bottom: isKeyboardVisible ? 20 : 60,
+            child: SquareIconButton(
+              svgAsset: 'assets/icons/voltar.svg', // <<< Apenas muda o ícone
+              onPressed: () => Navigator.of(context).pop(), // <<< E a ação
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // NOVO: Widget para construir a lista de requisitos
+  // Seus widgets auxiliares continuam os mesmos
   Widget _buildRequisitosSenha() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,7 +228,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
     );
   }
 
-  // NOVO: Widget para construir cada linha de requisito
   Widget _buildLinhaRequisito(String texto, bool atendido) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.0),
@@ -191,9 +241,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
           const SizedBox(width: 8),
           Text(
             texto,
-            style: TextStyle(
-              color: atendido ? Colors.green : Colors.grey,
-            ),
+            style: TextStyle(color: atendido ? Colors.green : Colors.grey),
           ),
         ],
       ),
