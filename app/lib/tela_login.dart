@@ -26,6 +26,8 @@ class _TelaLoginState extends State<TelaLogin> {
   Future<void> _login() async {
     setState(() { _loading = true; });
 
+    FocusScope.of(context).unfocus();
+    
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),

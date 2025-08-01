@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'tela_login.dart'; // Tela de Login
-import 'main.dart'; // Importa o arquivo main para acessar a MyHomePage
+import 'tela_menu_principal.dart'; // Importa o arquivo main para acessar a MyHomePage
 
 class AuthPage extends StatelessWidget {
   const AuthPage({super.key});
@@ -15,8 +15,7 @@ class AuthPage extends StatelessWidget {
         builder: (context, snapshot) {
           // Se o usuário estiver logado, mostra a tela principal
           if (snapshot.hasData) {
-            // ATENÇÃO: Substitua 'MyHomePage' pela sua tela principal quando a tiver
-            return const MyHomePage(title: 'Página Principal');
+            return const TelaMenuPrincipal();
           }
           // Se não, mostra a tela de login
           else {
