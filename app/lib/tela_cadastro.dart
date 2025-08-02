@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/widgets/background_scaffold.dart';
-import 'package:app/widgets/square_icon_button.dart'; // Ajuste o caminho
+import 'package:app/widgets/square_icon_button.dart';
 
 class TelaCadastro extends StatefulWidget {
   const TelaCadastro({super.key});

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:app/widgets/background_scaffold.dart'; // Ajuste o caminho
-import 'package:app/widgets/menu_button.dart'; // Ajuste o caminho
+import 'package:app/widgets/background_scaffold.dart';
+import 'package:app/widgets/menu_button.dart';
+import 'package:app/theme/app_colors.dart';
 
 // Importe suas telas placeholder
 import 'tela_novo_campeonato.dart';
@@ -20,23 +21,25 @@ class TelaMenuPrincipal extends StatelessWidget {
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
-              // --- CABEÇALHO COM LOGO E NOME ---
+               const SizedBox(height: 30),
               Row(
                 children: [
                   // Sua Logo
                   Image.asset(
-                    'assets/images/trofeu.png', // <<< COLOQUE O NOME DA SUA LOGO AQUI
-                    width: 60,
-                    height: 60,
+                    'assets/images/trofeu.png',
+                    width: 100,
+                    height: 100,
                   ),
                   const SizedBox(width: 16),
                   // Nome do App
                   const Text(
-                    'Championship\nManager',
+                    'The\nChampionship\nManager',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 24,
+                      fontFamily: 'PorterSansBlock',
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.borderYellow,
                     ),
                   ),
                 ],

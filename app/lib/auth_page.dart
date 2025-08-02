@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'tela_login.dart'; // Tela de Login
-import 'tela_menu_principal.dart'; // Importa o arquivo main para acessar a MyHomePage
+import 'tela_login.dart';
+import 'tela_menu_principal.dart';
 
 class AuthPage extends StatelessWidget {
   const AuthPage({super.key});
