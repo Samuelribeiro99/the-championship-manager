@@ -27,8 +27,12 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark, 
         
         // Cor de destaque (opcional, pode ajustar)
-        primarySwatch: Colors.green, 
+        primarySwatch: Colors.green,
 
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.borderYellow, // << Use sua cor principal como base
+          brightness: Brightness.dark,      // Importante para manter o tema escuro
+        ),
         // Define o estilo padrão para TODAS as AppBars do seu app
         appBarTheme: const AppBarTheme(
           titleTextStyle: TextStyle(
@@ -65,12 +69,12 @@ class MyApp extends StatelessWidget {
         // Define o estilo padrão para TODOS os TextButtons
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
-            foregroundColor: Colors.white, // Cor do texto do TextButton
+            foregroundColor: AppColors.textColor, // Cor do texto do TextButton
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.borderYellow,
+            foregroundColor: AppColors.textColor,
             minimumSize: const Size(50, 50),
             side: const BorderSide(
               width: 5.0,
@@ -78,6 +82,11 @@ class MyApp extends StatelessWidget {
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
+            ),
+            textStyle: const TextStyle(
+              fontFamily: 'PostNoBillsColombo',
+              fontSize: 24, // Defina um tamanho de fonte padrão
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),

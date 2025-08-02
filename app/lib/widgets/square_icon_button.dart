@@ -1,3 +1,4 @@
+import 'package:app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -16,8 +17,7 @@ class SquareIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Pega o estilo do tema para usar a cor do ícone
-    final buttonStyle = Theme.of(context).outlinedButtonTheme.style;
-    final iconColor = buttonStyle?.foregroundColor?.resolve({});
+    final iconColor = AppColors.borderYellow;
 
     return OutlinedButton(
       onPressed: onPressed,
@@ -34,7 +34,7 @@ class SquareIconButton extends StatelessWidget {
         svgAsset,
         // Faz o ícone SVG usar a cor definida no tema do botão
         colorFilter: ColorFilter.mode(
-          iconColor ?? Colors.white, // Usa a cor do tema ou branco como fallback
+          iconColor,
           BlendMode.srcIn,
         ),
       ),

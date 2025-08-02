@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:app/widgets/background_scaffold.dart'; // Ajuste o caminho
-import 'package:app/widgets/selection_button.dart'; // Ajuste o caminho
+import 'package:app/widgets/background_scaffold.dart';
+import 'package:app/widgets/selection_button.dart';
 import 'package:app/widgets/square_icon_button.dart';
+import 'package:app/theme/app_colors.dart';
+import 'tela_reautenticacao.dart';
 
 // Importe as telas que vamos usar
 import 'tela_trocar_senha.dart';
@@ -33,21 +35,33 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
   }
 
   Future<void> _excluirConta() async {
-    final confirmar = await _mostrarPopupConfirmacao(
-      titulo: 'Excluir Conta',
-      mensagem: 'ATENÇÃO: Esta ação é irreversível. Todos os seus dados serão perdidos. Deseja continuar?',
-      textoConfirmar: 'EXCLUIR',
+    // 1. Navega para a tela de reautenticação e espera um resultado
+    final bool? reautenticado = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (context) => const TelaReautenticacao()),
     );
 
-    if (confirmar == true && mounted) {
-      try {
-        await FirebaseAuth.instance.currentUser?.delete();
-        // O AuthPage cuidará de levar para a tela de login
-      } on FirebaseAuthException catch (e) {
-        // Para produção, é preciso tratar o erro de "re-autenticação recente"
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: ${e.message}'), backgroundColor: Colors.red),
-        );
+    // 2. Se a reautenticação foi bem-sucedida (retornou 'true')...
+    if (reautenticado == true && mounted) {
+      // 3. ...mostra o pop-up final de confirmação.
+      final confirmarExclusao = await _mostrarPopupConfirmacao(
+        titulo: 'Excluir Conta Permanentemente?',
+        mensagem: 'ATENÇÃO: Esta ação é irreversível. Todos os seus campeonatos e dados serão perdidos para sempre.',
+        textoConfirmar: 'SIM, EXCLUIR',
+      );
+
+      // 4. Se o usuário confirmar no pop-up...
+      if (confirmarExclusao == true && mounted) {
+        try {
+          // 5. ...exclui a conta.
+          await FirebaseAuth.instance.currentUser?.delete();
+          // E remove todas as telas da pilha para voltar ao login.
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        } on FirebaseAuthException catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erro ao excluir conta: ${e.message}'), backgroundColor: Colors.red),
+          );
+        }
       }
     }
   }
@@ -90,7 +104,12 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
             alignment: Alignment(0.0, -0.85),
             child: Text(
               'Configurações',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(
+                fontFamily: 'PostNoBillsColombo',
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textColor,
+              ),
             ),
           ),
 

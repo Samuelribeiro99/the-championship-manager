@@ -93,15 +93,7 @@ class _TelaLoginState extends State<TelaLogin> {
                       ),
                       child: _loading
                           ? CircularProgressIndicator(color: AppColors.borderYellow) 
-                          : const Text(
-                            'Entrar',
-                            style: TextStyle(
-                              fontFamily: 'PostNoBillsColombo',
-                              color: AppColors.textColor,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          : const Text('Entrar',),
                     ),
                   ),
                   const SizedBox(height: 100),
@@ -122,10 +114,7 @@ class _TelaLoginState extends State<TelaLogin> {
                     child: const Text(
                       'Cadastre-se',
                       style: TextStyle(
-                        fontFamily: 'PostNoBillsColombo',
-                        color: AppColors.textColor,
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -141,7 +130,7 @@ class _TelaLoginState extends State<TelaLogin> {
               'Login',
               style: TextStyle(
                 fontFamily: 'PostNoBillsColombo',
-                color: Colors.white,
+                color: AppColors.textColor,
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
               ),

@@ -1,6 +1,6 @@
 import 'package:app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:app/widgets/square_icon_button.dart'; // Ajuste o caminho se necessário
+import 'package:app/widgets/square_icon_button.dart';
 
 class SelectionButton extends StatelessWidget {
   final String text;
@@ -26,7 +26,7 @@ class SelectionButton extends StatelessWidget {
             child: OutlinedButton(
               onPressed: onPressed,
               style: OutlinedButton.styleFrom().copyWith(
-                padding: MaterialStateProperty.all(
+                padding: WidgetStateProperty.all(
                   const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
                 alignment: Alignment.centerLeft,
