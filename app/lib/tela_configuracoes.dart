@@ -124,7 +124,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                   // --- LISTA DE BOTÕES NO TOPO ---
                   SelectionButton(
                     text: 'Trocar Senha',
-                    svgAsset: 'assets/icons/editar.svg',
+                    svgAsset: 'assets/icons/senha.svg',
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaTrocarSenha()));
                     },
@@ -132,7 +132,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                   const SizedBox(height: 16),
                   SelectionButton(
                     text: 'Trocar Email',
-                    svgAsset: 'assets/icons/editar.svg',
+                    svgAsset: 'assets/icons/email.svg',
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaTrocarEmail()));
                     },
