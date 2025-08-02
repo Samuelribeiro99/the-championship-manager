@@ -1,3 +1,4 @@
+import 'package:app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/widgets/background_scaffold.dart';
@@ -135,8 +136,9 @@ class _TelaCadastroState extends State<TelaCadastro> {
             child: const Text(
               'Cadastre-se',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 32,
+                fontFamily: 'PostNoBillsColombo',
+                color: AppColors.textColor,
+                fontSize: 40,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -190,7 +192,15 @@ class _TelaCadastroState extends State<TelaCadastro> {
                         ),
                         child: _loading 
                             ? const CircularProgressIndicator(color: Colors.white) 
-                            : const Text('CADASTRAR'),
+                            : const Text(
+                              'Cadastrar',
+                              style: TextStyle(
+                                fontFamily: 'PostNoBillsColombo',
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                       ),
                     ),
                     const SizedBox(height: 50), // Espaço antes do botão de voltar
@@ -203,7 +213,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
           // --- ITEM 3: BOTÃO DE VOLTAR POSICIONADO NO CANTO INFERIOR ESQUERDO ---
           Positioned(
             left: 20,
-            bottom: isKeyboardVisible ? 20 : 60,
+            bottom: isKeyboardVisible ? 8 : 60,
             child: SquareIconButton(
               svgAsset: 'assets/icons/voltar.svg', // <<< Apenas muda o ícone
               onPressed: () => Navigator.of(context).pop(), // <<< E a ação

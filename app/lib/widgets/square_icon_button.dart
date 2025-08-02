@@ -10,7 +10,7 @@ class SquareIconButton extends StatelessWidget {
     super.key,
     required this.svgAsset,
     required this.onPressed,
-    this.size = 50.0, // Tamanho padrão de 50x50
+    this.size = 60.0, // Tamanho padrão de 50x50
   });
 
   @override

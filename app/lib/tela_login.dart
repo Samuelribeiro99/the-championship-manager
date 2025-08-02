@@ -89,11 +89,19 @@ class _TelaLoginState extends State<TelaLogin> {
                     child: OutlinedButton(
                       onPressed: _loading ? null : _login,
                       style: OutlinedButton.styleFrom().copyWith(
-                        minimumSize: WidgetStateProperty.all(const Size(200, 50)),
+                        minimumSize: WidgetStateProperty.all(const Size(150, 50)),
                       ),
-                      child: _loading 
+                      child: _loading
                           ? CircularProgressIndicator(color: AppColors.borderYellow) 
-                          : const Text('ENTRAR'),
+                          : const Text(
+                            'Entrar',
+                            style: TextStyle(
+                              fontFamily: 'PostNoBillsColombo',
+                              color: AppColors.textColor,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                     ),
                   ),
                   const SizedBox(height: 100),
@@ -111,15 +119,20 @@ class _TelaLoginState extends State<TelaLogin> {
                         ),
                       ),
                     ),
-                    child: const Text('CADASTRE-SE'),
+                    child: const Text(
+                      'Cadastre-se',
+                      style: TextStyle(
+                        fontFamily: 'PostNoBillsColombo',
+                        color: AppColors.textColor,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-
-          // --- ITEM 2: O TÍTULO "LOGIN" POSICIONADO LIVREMENTE ---
-          // O Align nos permite posicionar seu filho dentro do Stack.
           Align(
             // Alignment(x, y): x=-1.0 (esquerda), x=1.0 (direita)
             //                  y=-1.0 (topo),    y=1.0 (fundo)
@@ -127,8 +140,9 @@ class _TelaLoginState extends State<TelaLogin> {
             child: const Text(
               'Login',
               style: TextStyle(
+                fontFamily: 'PostNoBillsColombo',
                 color: Colors.white,
-                fontSize: 32,
+                fontSize: 40,
                 fontWeight: FontWeight.bold,
               ),
             ),
