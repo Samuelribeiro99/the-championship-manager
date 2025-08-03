@@ -1,10 +1,10 @@
-import 'package:app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/widgets/background_scaffold.dart';
 import 'package:app/widgets/square_icon_button.dart';
 import 'package:app/widgets/password_validation_fields.dart';
 import 'package:app/utils/validators.dart';
+import 'package:app/theme/text_styles.dart';
 
 class TelaCadastro extends StatefulWidget {
   const TelaCadastro({super.key});
@@ -93,12 +93,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
             alignment: const Alignment(0.0, -0.85),
             child: const Text(
               'Cadastre-se',
-              style: TextStyle(
-                fontFamily: 'PostNoBillsColombo',
-                color: AppColors.textColor,
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-              ),
+              style: AppTextStyles.screenTitle,
             ),
           ),
 

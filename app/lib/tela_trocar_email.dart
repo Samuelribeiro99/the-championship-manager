@@ -1,10 +1,10 @@
-import 'package:app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/widgets/background_scaffold.dart';
 import 'package:app/widgets/square_icon_button.dart';
 import 'package:app/utils/validators.dart';
 import 'tela_reautenticacao.dart';
+import 'package:app/theme/text_styles.dart';
 
 class TelaTrocarEmail extends StatefulWidget {
   const TelaTrocarEmail({super.key});
@@ -99,12 +99,7 @@ class _TelaTrocarEmailState extends State<TelaTrocarEmail> {
             alignment: Alignment(0.0, -0.8),
             child: Text(
               'Trocar e-mail',
-              style: TextStyle(
-                fontFamily: 'PostNoBillsColombo',
-                color: AppColors.textColor,
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-              ),
+              style: AppTextStyles.screenTitle,
             ),
           ),
           SafeArea(
@@ -132,7 +127,7 @@ class _TelaTrocarEmailState extends State<TelaTrocarEmail> {
                       child: OutlinedButton(
                         onPressed: _loading ? null : _salvarNovoEmail,
                         style: OutlinedButton.styleFrom().copyWith(
-                          minimumSize: MaterialStateProperty.all(const Size(200, 50)),
+                          minimumSize: WidgetStateProperty.all(const Size(200, 50)),
                         ),
                         child: _loading 
                             ? const CircularProgressIndicator(color: Colors.white) 

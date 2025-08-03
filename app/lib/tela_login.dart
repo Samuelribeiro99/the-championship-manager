@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'tela_cadastro.dart'; // Importa a tela de cadastro para navegação
 import 'package:app/widgets/background_scaffold.dart';
 import 'package:app/theme/app_colors.dart';
+import 'package:app/theme/text_styles.dart';
 
 class TelaLogin extends StatefulWidget {
   const TelaLogin({super.key});
@@ -128,12 +129,7 @@ class _TelaLoginState extends State<TelaLogin> {
             alignment: const Alignment(-0.0, -0.85), // Centralizado horizontalmente, um pouco abaixo do topo
             child: const Text(
               'Login',
-              style: TextStyle(
-                fontFamily: 'PostNoBillsColombo',
-                color: AppColors.textColor,
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-              ),
+              style: AppTextStyles.screenTitle,
             ),
           ),
         ],

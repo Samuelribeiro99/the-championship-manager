@@ -3,33 +3,32 @@ import 'package:flutter/material.dart';
 class BackgroundScaffold extends StatelessWidget {
   final Widget body;
   final AppBar? appBar;
+  final bool resizeToAvoidBottomInset;
 
   const BackgroundScaffold({
     super.key,
     required this.body,
     this.appBar,
+    this.resizeToAvoidBottomInset = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Vamos clonar a AppBar para garantir que ela seja transparente
     final transparentAppBar = appBar != null
         ? AppBar(
             title: appBar!.title,
             leading: appBar!.leading,
             actions: appBar!.actions,
-            backgroundColor: Colors.transparent, // Força a transparência
-            elevation: 0, // Remove a sombra
+            backgroundColor: Colors.transparent,
+            elevation: 0,
           )
         : null;
 
     return Scaffold(
-      // MUDANÇA PRINCIPAL 1: Faz o corpo se estender por trás da AppBar
+      // 3. USAMOS A PROPRIEDADE RECEBIDA AQUI
+      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
       extendBodyBehindAppBar: true,
-      
-      // Usa a nossa AppBar já transparente
       appBar: transparentAppBar,
-
       body: Container(
         constraints: const BoxConstraints.expand(),
         decoration: const BoxDecoration(
@@ -38,7 +37,6 @@ class BackgroundScaffold extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
-        // O conteúdo da sua tela ficará aqui
         child: body,
       ),
     );

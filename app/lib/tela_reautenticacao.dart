@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/widgets/background_scaffold.dart';
 import 'package:app/widgets/square_icon_button.dart'; // <<< 1. IMPORTE O BOTÃO
-import 'package:app/theme/app_colors.dart';
+import 'package:app/theme/text_styles.dart';
 
 class TelaReautenticacao extends StatefulWidget {
   const TelaReautenticacao({super.key});
@@ -72,15 +72,9 @@ class _TelaReautenticacaoState extends State<TelaReautenticacao> {
             child: Text(
               'Confirme sua identidade',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'PostNoBillsColombo',
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textColor,
-              ),
+              style: AppTextStyles.screenTitle,
             ),
           ),
-          // O BOTÃO DE VOLTAR NO TOPO FOI REMOVIDO DAQUI
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),

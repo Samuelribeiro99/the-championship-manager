@@ -1,9 +1,10 @@
 import 'package:app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:app/widgets/background_scaffold.dart'; // Ajuste o caminho
+import 'package:app/widgets/background_scaffold.dart';
 import 'package:app/widgets/square_icon_button.dart';
-import 'package:app/widgets/password_validation_fields.dart'; // <<< Importa o novo widget
+import 'package:app/widgets/password_validation_fields.dart';
+import 'package:app/theme/text_styles.dart'; // Ajuste o caminho
 
 class TelaTrocarSenha extends StatefulWidget {
   const TelaTrocarSenha({super.key});
@@ -93,11 +94,7 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
             alignment: Alignment(0.0, -0.8),
             child: Text(
               'Trocar senha',
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textColor
-              ),
+              style: AppTextStyles.screenTitle,
             ),
           ),
           SafeArea(

@@ -3,8 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/widgets/background_scaffold.dart';
 import 'package:app/widgets/selection_button.dart';
 import 'package:app/widgets/square_icon_button.dart';
-import 'package:app/theme/app_colors.dart';
 import 'tela_reautenticacao.dart';
+import 'package:app/theme/text_styles.dart';
 
 // Importe as telas que vamos usar
 import 'tela_trocar_senha.dart';
@@ -23,7 +23,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
 
   Future<void> _fazerLogoff() async {
     final confirmar = await _mostrarPopupConfirmacao(
-      titulo: 'Confirmar Logoff',
+      titulo: 'Confirmar logoff',
       mensagem: 'Você tem certeza que deseja sair?',
     );
 
@@ -45,7 +45,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
     if (reautenticado == true && mounted) {
       // 3. ...mostra o pop-up final de confirmação.
       final confirmarExclusao = await _mostrarPopupConfirmacao(
-        titulo: 'Excluir Conta Permanentemente?',
+        titulo: 'Excluir conta permanentemente?',
         mensagem: 'ATENÇÃO: Esta ação é irreversível. Todos os seus campeonatos e dados serão perdidos para sempre.',
         textoConfirmar: 'SIM, EXCLUIR',
       );
@@ -104,12 +104,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
             alignment: Alignment(0.0, -0.85),
             child: Text(
               'Configurações',
-              style: TextStyle(
-                fontFamily: 'PostNoBillsColombo',
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textColor,
-              ),
+              style: AppTextStyles.screenTitle,
             ),
           ),
 
@@ -123,7 +118,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
 
                   // --- LISTA DE BOTÕES NO TOPO ---
                   SelectionButton(
-                    text: 'Trocar Senha',
+                    text: 'Trocar senha',
                     svgAsset: 'assets/icons/senha.svg',
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaTrocarSenha()));
@@ -131,7 +126,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                   ),
                   const SizedBox(height: 16),
                   SelectionButton(
-                    text: 'Trocar Email',
+                    text: 'Trocar email',
                     svgAsset: 'assets/icons/email.svg',
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaTrocarEmail()));
@@ -145,7 +140,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                   ),
                   const SizedBox(height: 16),
                   SelectionButton(
-                    text: 'Excluir Conta',
+                    text: 'Excluir conta',
                     svgAsset: 'assets/icons/lixeira.svg',
                     onPressed: _excluirConta,
                   ),
