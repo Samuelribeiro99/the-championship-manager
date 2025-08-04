@@ -4,12 +4,18 @@ import 'package:app/widgets/square_icon_button.dart';
 import 'package:app/theme/text_styles.dart';
 import 'tela_principal_campeonato.dart';
 import 'package:app/widgets/selection_button.dart';
+import 'package:app/models/modo_campeonato.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:app/models/campeonato_models.dart';
 
 class TelaAdicionarJogadores extends StatefulWidget {
   final String nomeDoCampeonato;
+  final ModoCampeonato modo;
 
   const TelaAdicionarJogadores({
     super.key,
+    required this.modo,
     required this.nomeDoCampeonato,
   });
 
@@ -60,9 +66,10 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
     }
   }
 
-  void _avancar() {
+  Future<void> _avancar() async {
     FocusScope.of(context).unfocus();
 
+    // Validações de número de jogadores
     if (_jogadores.length < 4) {
       _mostrarPopupAlerta('É necessário adicionar pelo menos 4 jogadores.');
       return;
@@ -72,12 +79,59 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
       return;
     }
 
-    Navigator.push(context, MaterialPageRoute(
-      builder: (context) => TelaPrincipalCampeonato(
-        nomeDoCampeonato: widget.nomeDoCampeonato,
-        jogadores: _jogadores,
-      ),
-    ));
+    // --- LÓGICA DE SALVAR NO FIREBASE ---
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      // 1. Cria o documento principal do campeonato no Firestore
+      DocumentReference campeonatoRef = await FirebaseFirestore.instance.collection('campeonatos').add({
+        'nome': widget.nomeDoCampeonato,
+        'nome_lowercase': widget.nomeDoCampeonato.toLowerCase(),
+        'idCriador': user.uid,
+        'status': 'ativo',
+        'criadoEm': FieldValue.serverTimestamp(),
+        'modo': widget.modo.toString(),
+        'jogadores': _jogadores.map((nome) => {'nome': nome}).toList(),
+      });
+
+      // 2. Lógica para gerar e salvar as partidas na subcoleção
+      List<Partida> partidasGeradas = [];
+      for (int i = 0; i < _jogadores.length; i++) {
+        for (int j = i + 1; j < _jogadores.length; j++) {
+          partidasGeradas.add(Partida(jogador1: _jogadores[i], jogador2: _jogadores[j]));
+        }
+      }
+      partidasGeradas.shuffle();
+
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+      for (var partida in partidasGeradas) {
+        DocumentReference partidaRef = campeonatoRef.collection('partidas').doc();
+        batch.set(partidaRef, {
+          'jogador1': partida.jogador1,
+          'jogador2': partida.jogador2,
+          'placar1': null,
+          'placar2': null,
+          'finalizada': false,
+        });
+      }
+      await batch.commit(); // Salva todas as partidas de uma só vez
+
+      // 3. Navega para a tela principal, AGORA PASSANDO O ID
+      if (mounted) {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) => TelaPrincipalCampeonato(
+            campeonatoId: campeonatoRef.id, // <<< O ID DO CAMPEONATO CRIADO
+            nomeDoCampeonato: widget.nomeDoCampeonato,
+            jogadores: _jogadores,
+            modo: widget.modo,
+          ),
+        ));
+      }
+
+    } catch (e) {
+      _mostrarPopupAlerta('Ocorreu um erro ao criar o campeonato: $e');
+    }
   }
 
   // --- WIDGETS AUXILIARES ---

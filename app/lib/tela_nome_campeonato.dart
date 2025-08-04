@@ -3,9 +3,13 @@ import 'package:app/widgets/background_scaffold.dart';
 import 'package:app/widgets/square_icon_button.dart';
 import 'tela_adicionar_jogadores.dart';
 import 'package:app/theme/text_styles.dart';
+import 'package:app/models/modo_campeonato.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class TelaNomeCampeonato extends StatefulWidget {
-  const TelaNomeCampeonato({super.key});
+  final ModoCampeonato modo;
+  const TelaNomeCampeonato({super.key, required this.modo});
 
   @override
   State<TelaNomeCampeonato> createState() => _TelaNomeCampeonatoState();
@@ -20,29 +24,74 @@ class _TelaNomeCampeonatoState extends State<TelaNomeCampeonato> {
     super.dispose();
   }
 
-  void _avancarParaAdicionarJogadores() {
-    FocusScope.of(context).unfocus(); // Recolhe o teclado
-
+  Future<void> _avancarParaAdicionarJogadores() async {
+    FocusScope.of(context).unfocus();
     final nomeCampeonato = _nomeController.text.trim();
 
-    // Validação simples para não deixar o nome em branco
     if (nomeCampeonato.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, dê um nome ao campeonato.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      // Usando um pop-up em vez de SnackBar para consistência
+      _mostrarPopupAlerta('Por favor, dê um nome ao campeonato.');
       return;
     }
 
-    // Navega para a próxima tela, passando o nome do campeonato
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TelaAdicionarJogadores(
-          nomeDoCampeonato: nomeCampeonato,
-        ),
+    // Mostra um indicador de carregamento
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception("Usuário não logado");
+
+      // Consulta o Firestore para ver se o nome já existe
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('campeonatos')
+          .where('idCriador', isEqualTo: user.uid)
+          .where('nome_lowercase', isEqualTo: nomeCampeonato.toLowerCase())
+          .limit(1) // Otimização: só precisamos saber se existe 1, não precisa buscar todos
+          .get();
+
+      // Esconde o indicador de carregamento
+      if (mounted) Navigator.of(context).pop();
+
+      // Se a lista de documentos não for vazia, significa que o nome já existe
+      if (querySnapshot.docs.isNotEmpty) {
+        _mostrarPopupAlerta('Já existe um campeonato com este nome.');
+      } else {
+        // Se não existe, avança para a próxima tela
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TelaAdicionarJogadores(
+              // Lembre-se que esta tela precisa receber o 'modo'
+              modo: widget.modo, // Certifique-se que sua tela recebe o modo
+              nomeDoCampeonato: nomeCampeonato,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Esconde o indicador de carregamento em caso de erro
+      if (mounted) Navigator.of(context).pop();
+      _mostrarPopupAlerta('Ocorreu um erro ao verificar o nome: $e');
+    }
+  }
+
+  // Adicione esta função auxiliar para o pop-up, se ela não existir
+  Future<void> _mostrarPopupAlerta(String mensagem) {
+    return showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Atenção'),
+        content: Text(mensagem),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }

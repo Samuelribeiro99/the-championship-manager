@@ -4,11 +4,11 @@ import 'package:app/widgets/menu_button.dart';
 import 'package:app/theme/app_colors.dart';
 
 // Importe suas telas placeholder
-import 'tela_nome_campeonato.dart';
 import 'tela_historico.dart';
 import 'tela_estatisticas.dart';
 import 'tela_configuracoes.dart';
 import 'tela_sobre.dart';
+import 'tela_modo_campeonato.dart';
 
 class TelaMenuPrincipal extends StatelessWidget {
   const TelaMenuPrincipal({super.key});
@@ -52,7 +52,7 @@ class TelaMenuPrincipal extends StatelessWidget {
                 text: 'Novo Campeonato',
                 svgAsset: 'assets/icons/novo_campeonato.svg', // <<< USE SEUS ÍCONES
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaNomeCampeonato()));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaModoCampeonato()));
                 },
               ),
               const SizedBox(height: 16),

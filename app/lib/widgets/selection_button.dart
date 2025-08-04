@@ -6,12 +6,14 @@ class SelectionButton extends StatelessWidget {
   final String text;
   final String svgAsset;
   final VoidCallback onPressed;
+  final Alignment alignment;
 
   const SelectionButton({
     super.key,
     required this.text,
     required this.svgAsset,
     required this.onPressed,
+    this.alignment = Alignment.centerLeft,
   });
 
   @override
@@ -29,7 +31,7 @@ class SelectionButton extends StatelessWidget {
                 padding: WidgetStateProperty.all(
                   const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
-                alignment: Alignment.centerLeft,
+                alignment: alignment,
               ),
               child: Text(
                 text,
