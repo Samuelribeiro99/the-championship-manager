@@ -6,6 +6,7 @@ import 'package:app/widgets/selection_button.dart';
 import 'package:app/widgets/square_icon_button.dart';
 import 'package:app/theme/text_styles.dart';
 import 'package:app/theme/app_colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Importe suas telas placeholder
 import 'tela_inserir_resultado.dart';
@@ -78,9 +79,76 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
 
   // --- Funções dos Botões ---
 
-  void _excluirCampeonato() {
-    // TODO: Implementar lógica de exclusão no Firebase
-    print('Excluir campeonato');
+  Future<bool?> _mostrarPopupConfirmacao({
+    required String titulo,
+    required String mensagem,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(titulo),
+        content: Text(mensagem),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false), // Retorna false se cancelar
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true), // Retorna true se confirmar
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('EXCLUIR'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _excluirCampeonato() async {
+    final confirmar = await _mostrarPopupConfirmacao(
+      titulo: 'Excluir Campeonato',
+      mensagem: 'Esta ação é irreversível e todos os dados deste campeonato serão perdidos. Deseja continuar?',
+    );
+
+    if (confirmar == true && mounted) {
+      try {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(child: CircularProgressIndicator()),
+        );
+
+        // Pega a referência do documento do campeonato
+        final campeonatoRef = FirebaseFirestore.instance
+            .collection('campeonatos')
+            .doc(widget.campeonatoId);
+
+        // 1. Busca todos os documentos na subcoleção 'partidas'
+        final partidasSnapshot = await campeonatoRef.collection('partidas').get();
+
+        // 2. Cria um "batch" para deletar todas as partidas em uma única operação
+        WriteBatch batch = FirebaseFirestore.instance.batch();
+        for (var doc in partidasSnapshot.docs) {
+          batch.delete(doc.reference);
+        }
+        // Executa a exclusão de todas as partidas
+        await batch.commit();
+
+        // 3. Depois de deletar as partidas, deleta o documento principal do campeonato
+        await campeonatoRef.delete();
+
+        if (mounted) Navigator.of(context).pop(); // Esconde o carregamento
+
+        if (mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+
+      } catch (e) {
+        if (mounted) Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao excluir o campeonato: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   void _mostrarInfoTabela() {
@@ -148,7 +216,7 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                                 width: 2.0, // Grossura das linhas internas finas
                                 color: AppColors.borderYellow, // Cor das linhas internas
                               ),
-                              headingRowColor: MaterialStateProperty.all(
+                              headingRowColor: WidgetStateProperty.all(
                                 AppColors.borderYellow.withOpacity(0.2), // Cor de destaque para o cabeçalho
                               ),
                               dividerThickness: 0,
@@ -163,7 +231,7 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                                 const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('E')))),
                                 const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('SG')))),
                                 const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('GP')))),
-                                const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('GC')))),
+                                const DataColumn(label: SizedBox(width: 50, child: Center(child: Text('GC')))),
                               ],
                               rows: _classificacao.map((j) => DataRow(
                                 cells: [
@@ -174,7 +242,7 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                                   DataCell(SizedBox(width: 60, child: Center(child: Text(j.empates.toString())))),
                                   DataCell(SizedBox(width: 60, child: Center(child: Text(j.saldoDeGols.toString())))),
                                   DataCell(SizedBox(width: 60, child: Center(child: Text(j.golsPro.toString())))),
-                                  DataCell(SizedBox(width: 60, child: Center(child: Text(j.golsContra.toString())))),
+                                  DataCell(SizedBox(width: 50, child: Center(child: Text(j.golsContra.toString())))),
                                 ]
                               )).toList(),
                             ),
