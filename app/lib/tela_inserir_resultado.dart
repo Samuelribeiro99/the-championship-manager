@@ -7,6 +7,7 @@ import 'package:app/widgets/square_icon_button.dart';
 import 'package:app/widgets/match_result_selection.dart';
 import 'package:app/theme/text_styles.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'tela_cronometro.dart';
 
 class TelaInserirResultado extends StatefulWidget {
   final String campeonatoId;
@@ -158,14 +159,13 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
                   const SizedBox(height: 70),
                   OutlinedButton(
                     onPressed: _finalizarPartida,
+                    style: OutlinedButton.styleFrom().copyWith(
+                      fixedSize: WidgetStateProperty.all(const Size(200, 50)), 
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Finalizar',
-                          style: TextStyle(
-                            color: AppColors.textColor,
-                          )
-                        ),
+                        const Text('Finalizar'),
                         const SizedBox(width: 8),
                         SvgPicture.asset(
                           'assets/icons/apito.svg',
@@ -185,6 +185,19 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
             child: SquareIconButton(
               svgAsset: 'assets/icons/voltar.svg',
               onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+          Positioned(
+            right: 20,
+            bottom: 60,
+            child: SquareIconButton(
+              svgAsset: 'assets/icons/cronometro.svg',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TelaCronometro()),
+                );
+              },
             ),
           ),
         ],

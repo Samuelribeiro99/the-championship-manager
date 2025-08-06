@@ -28,7 +28,7 @@ class SquareIconButton extends StatelessWidget {
         minimumSize: WidgetStateProperty.all(Size(size, size)),
         maximumSize: WidgetStateProperty.all(Size(size, size)),
         padding: WidgetStateProperty.all(const EdgeInsets.all(10)),
-        side: !hasBorder ? MaterialStateProperty.all(BorderSide.none) : null,
+        side: !hasBorder ? WidgetStateProperty.all(BorderSide.none) : null,
       ),
       
       child: SvgPicture.asset(
