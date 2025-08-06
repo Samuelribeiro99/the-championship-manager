@@ -5,18 +5,19 @@ import 'package:flutter_svg/flutter_svg.dart';
 class SquareIconButton extends StatelessWidget {
   final String svgAsset;
   final VoidCallback onPressed;
-  final double size; // Opcional: para permitir tamanhos diferentes se precisar
+  final double size;
+  final bool hasBorder;
 
   const SquareIconButton({
     super.key,
     required this.svgAsset,
     required this.onPressed,
-    this.size = 60.0, // Tamanho padrão de 50x50
+    this.size = 60.0,
+    this.hasBorder = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Pega o estilo do tema para usar a cor do ícone
     final iconColor = AppColors.borderYellow;
 
     return OutlinedButton(
@@ -26,13 +27,12 @@ class SquareIconButton extends StatelessWidget {
       style: OutlinedButton.styleFrom().copyWith(
         minimumSize: WidgetStateProperty.all(Size(size, size)),
         maximumSize: WidgetStateProperty.all(Size(size, size)),
-        padding: WidgetStateProperty.all(const EdgeInsets.all(10)), // Espaço para o ícone
-        // A borda e outras características vêm do tema!
+        padding: WidgetStateProperty.all(const EdgeInsets.all(10)),
+        side: !hasBorder ? MaterialStateProperty.all(BorderSide.none) : null,
       ),
       
       child: SvgPicture.asset(
         svgAsset,
-        // Faz o ícone SVG usar a cor definida no tema do botão
         colorFilter: ColorFilter.mode(
           iconColor,
           BlendMode.srcIn,

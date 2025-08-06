@@ -3,28 +3,29 @@ import 'package:flutter/material.dart';
 import 'package:app/widgets/square_icon_button.dart';
 
 class SelectionButton extends StatelessWidget {
-  final String text;
+  final String? text; // <<< AGORA É OPCIONAL
+  final Widget? child; // <<< NOVO PARÂMETRO
   final String svgAsset;
   final VoidCallback onPressed;
   final Alignment alignment;
 
   const SelectionButton({
     super.key,
-    required this.text,
+    this.text,
+    this.child,
     required this.svgAsset,
     required this.onPressed,
     this.alignment = Alignment.centerLeft,
-  });
+  }) : assert(text != null || child != null, 'É necessário fornecer "text" ou "child".');
+  // O 'assert' garante que você não se esqueça de passar um dos dois.
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // O Expanded volta a ser o filho direto da Row
         Expanded(
-          // E o SizedBox fica DENTRO do Expanded
           child: SizedBox(
-            height: 60, // Forçamos a altura aqui
+            height: 60,
             child: OutlinedButton(
               onPressed: onPressed,
               style: OutlinedButton.styleFrom().copyWith(
@@ -33,8 +34,10 @@ class SelectionButton extends StatelessWidget {
                 ),
                 alignment: alignment,
               ),
-              child: Text(
-                text,
+              // --- LÓGICA CONDICIONAL AQUI ---
+              // Se um 'child' for fornecido, use-o. Senão, use o 'text'.
+              child: child ?? Text(
+                text!, // O '!' garante que, se child for nulo, text não será.
                 style: const TextStyle(
                   fontFamily: 'PostNoBillsColombo',
                   fontSize: 24,
@@ -45,9 +48,7 @@ class SelectionButton extends StatelessWidget {
             ),
           ),
         ),
-
         const SizedBox(width: 12),
-
         SquareIconButton(
           svgAsset: svgAsset,
           onPressed: onPressed,

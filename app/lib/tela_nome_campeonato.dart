@@ -118,7 +118,11 @@ class _TelaNomeCampeonatoState extends State<TelaNomeCampeonato> {
                 children: [
                   TextField(
                     controller: _nomeController,
-                    decoration: const InputDecoration(labelText: 'Digite o nome aqui'),
+                    maxLength: 20,
+                    decoration: const InputDecoration(
+                      labelText: 'Digite o nome aqui',
+                      counterText: "",
+                    ),
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 22),
                   ),

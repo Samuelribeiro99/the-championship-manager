@@ -66,6 +66,41 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
     }
   }
 
+  /// Gera uma lista de partidas estruturada em rodadas (algoritmo Round-robin)
+  List<Partida> _gerarPartidasPorRodada(List<String> jogadores) {
+    List<String> jogadoresParaSorteio = List.from(jogadores);
+    List<Partida> partidasGeradas = [];
+
+    // Se o número de jogadores for ímpar, adiciona um "jogador fantasma" para o cálculo
+    if (jogadoresParaSorteio.length % 2 != 0) {
+      jogadoresParaSorteio.add("Fantasma");
+    }
+
+    int numRodadas = jogadoresParaSorteio.length - 1;
+    int jogadoresPorRodada = jogadoresParaSorteio.length ~/ 2;
+
+    for (int rodada = 0; rodada < numRodadas; rodada++) {
+      for (int i = 0; i < jogadoresPorRodada; i++) {
+        String jogador1 = jogadoresParaSorteio[i];
+        String jogador2 = jogadoresParaSorteio[jogadoresParaSorteio.length - 1 - i];
+
+        // Adiciona a partida apenas se não envolver o jogador fantasma
+        if (jogador1 != "Fantasma" && jogador2 != "Fantasma") {
+          // Embaralha quem joga em casa ou fora para ser mais justo
+          if (i % 2 == 1) {
+            partidasGeradas.add(Partida(rodada: rodada + 1, jogador1: jogador1, jogador2: jogador2));
+          } else {
+            partidasGeradas.add(Partida(rodada: rodada + 1, jogador1: jogador2, jogador2: jogador1));
+          }
+        }
+      }
+      // Gira a lista de jogadores para a próxima rodada, mantendo o primeiro fixo
+      String ultimoJogador = jogadoresParaSorteio.removeLast();
+      jogadoresParaSorteio.insert(1, ultimoJogador);
+    }
+    return partidasGeradas;
+  }
+
   Future<void> _avancar() async {
     FocusScope.of(context).unfocus();
 
@@ -96,18 +131,13 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
       });
 
       // 2. Lógica para gerar e salvar as partidas na subcoleção
-      List<Partida> partidasGeradas = [];
-      for (int i = 0; i < _jogadores.length; i++) {
-        for (int j = i + 1; j < _jogadores.length; j++) {
-          partidasGeradas.add(Partida(jogador1: _jogadores[i], jogador2: _jogadores[j]));
-        }
-      }
-      partidasGeradas.shuffle();
+      List<Partida> partidasGeradas = _gerarPartidasPorRodada(_jogadores);
 
       WriteBatch batch = FirebaseFirestore.instance.batch();
       for (var partida in partidasGeradas) {
         DocumentReference partidaRef = campeonatoRef.collection('partidas').doc();
         batch.set(partidaRef, {
+          'rodada': partida.rodada, // <<< SALVA O NÚMERO DA RODADA
           'jogador1': partida.jogador1,
           'jogador2': partida.jogador2,
           'placar1': null,
@@ -115,18 +145,22 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
           'finalizada': false,
         });
       }
-      await batch.commit(); // Salva todas as partidas de uma só vez
+      await batch.commit();
 
       // 3. Navega para a tela principal, AGORA PASSANDO O ID
       if (mounted) {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) => TelaPrincipalCampeonato(
-            campeonatoId: campeonatoRef.id, // <<< O ID DO CAMPEONATO CRIADO
-            nomeDoCampeonato: widget.nomeDoCampeonato,
-            jogadores: _jogadores,
-            modo: widget.modo,
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TelaPrincipalCampeonato(
+              campeonatoId: campeonatoRef.id,
+              nomeDoCampeonato: widget.nomeDoCampeonato,
+              jogadores: _jogadores,
+              modo: widget.modo,
+            ),
           ),
-        ));
+          (route) => route.isFirst, // <<< A condição para parar de remover
+        );
       }
 
     } catch (e) {
@@ -180,7 +214,7 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
         children: [
           Align(
             alignment: const Alignment(0.0, -0.85),
-            child: Text('Adicionar Jogadores', style: AppTextStyles.screenTitle),
+            child: Text('Adicionar jogadores', style: AppTextStyles.screenTitle),
           ),
           
           Padding(
@@ -192,8 +226,11 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
                     Expanded(
                       child: TextField(
                         controller: _nomeJogadorController,
+                        maxLength: 25, // Limite para o nome do jogador
                         decoration: const InputDecoration(
-                          labelText: 'Nome do Jogador'),
+                          labelText: 'Nome do Jogador',
+                          counterText: "", // Esconde o contador
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
