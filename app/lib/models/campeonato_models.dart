@@ -9,6 +9,7 @@ class JogadorNaClassificacao {
   int derrotas = 0;
   int golsPro = 0;
   int golsContra = 0;
+  double? posicaoSorteio;
 
   JogadorNaClassificacao({required this.nome});
 

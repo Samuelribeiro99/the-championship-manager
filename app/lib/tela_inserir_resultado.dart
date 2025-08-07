@@ -53,6 +53,7 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
         j.derrotas = dadosJogador['derrotas'] ?? 0;
         j.golsPro = dadosJogador['golsPro'] ?? 0;
         j.golsContra = dadosJogador['golsContra'] ?? 0;
+        j.posicaoSorteio = (dadosJogador['posicaoSorteio'] as num?)?.toDouble();
         return j;
       }).toList();
     } else {
@@ -89,21 +90,73 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
       jogador2.empates++;
     }
 
-    // Ordena a classificação por pontos e depois por saldo de gols
+    final partidasNaoFinalizadasSnapshot = await campeonatoRef
+    .collection('partidas')
+    .where('finalizada', isEqualTo: false)
+    .get();
+
+    final bool isUltimaPartida = partidasNaoFinalizadasSnapshot.docs.where((doc) => doc.id != widget.partida.id).isEmpty;
+
+    List<Partida> todasAsPartidas = [];
+      if (isUltimaPartida) {
+        final partidaAtualAtualizada = Partida(id: widget.partida.id, rodada: widget.partida.rodada, jogador1: widget.partida.jogador1, jogador2: widget.partida.jogador2)
+          ..placar1 = placar1
+          ..placar2 = placar2
+          ..finalizada = true;
+
+        final outrasPartidasSnapshot = await campeonatoRef.collection('partidas').get();
+        todasAsPartidas = outrasPartidasSnapshot.docs.map((doc) {
+          if (doc.id == widget.partida.id) return partidaAtualAtualizada; // Usa nossa versão atualizada
+          final dados = doc.data();
+          return Partida(id: doc.id, rodada: dados['rodada'], jogador1: dados['jogador1'], jogador2: dados['jogador2'])
+            ..placar1 = dados['placar1']
+            ..placar2 = dados['placar2'];
+        }).toList();
+      }
+
     classificacaoAtual.sort((a, b) {
-      // Critério 1: Mais Pontos
-      int comparacaoPontos = b.pontos.compareTo(a.pontos);
-      if (comparacaoPontos != 0) return comparacaoPontos;
+      // Critério 1: Pontos
+      int compPontos = b.pontos.compareTo(a.pontos);
+      if (compPontos != 0) return compPontos;
 
-      // Critério 2: Maior Saldo de Gols (SG)
-      int comparacaoSG = b.saldoDeGols.compareTo(a.saldoDeGols);
-      if (comparacaoSG != 0) return comparacaoSG;
+      // Critério 2: Vitórias
+      int compVitorias = b.vitorias.compareTo(a.vitorias);
+      if (compVitorias != 0) return compVitorias;
 
-      // Critério 3: Mais Gols Pró (GP) - Gols Marcados
-      int comparacaoGP = b.golsPro.compareTo(a.golsPro);
-      if (comparacaoGP != 0) return comparacaoGP;
+      // Critério 3: Saldo de Gols
+      int compSG = b.saldoDeGols.compareTo(a.saldoDeGols);
+      if (compSG != 0) return compSG;
 
-      // Se tudo continuar empatado, por enquanto mantém a ordem
+      // Critério 4: Gols Pró
+      int compGP = b.golsPro.compareTo(a.golsPro);
+      if (compGP != 0) return compGP;
+
+      // --- CRITÉRIOS DA ÚLTIMA PARTIDA ---
+      if (isUltimaPartida) {
+        // Critério 5: Confronto Direto
+        Partida? confrontoDireto;
+        try {
+          confrontoDireto = todasAsPartidas.firstWhere(
+            (p) => (p.jogador1 == a.nome && p.jogador2 == b.nome) || (p.jogador1 == b.nome && p.jogador2 == a.nome)
+          );
+        } catch (e) {
+          confrontoDireto = null;
+        }
+        if (confrontoDireto != null && confrontoDireto.placar1 != null) {
+          if (confrontoDireto.jogador1 == a.nome) {
+            if (confrontoDireto.placar1! > confrontoDireto.placar2!) return -1;
+            if (confrontoDireto.placar1! < confrontoDireto.placar2!) return 1;
+          } else {
+            if (confrontoDireto.placar1! > confrontoDireto.placar2!) return 1;
+            if (confrontoDireto.placar1! < confrontoDireto.placar2!) return -1;
+          }
+        }
+
+        // Critério 6: Sorteio (persistente)
+        a.posicaoSorteio ??= Random().nextDouble();
+        b.posicaoSorteio ??= Random().nextDouble();
+        return b.posicaoSorteio!.compareTo(a.posicaoSorteio!);
+      }
       return 0;
     });
     
@@ -117,16 +170,11 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
       'derrotas': j.derrotas,
       'golsPro': j.golsPro,
       'golsContra': j.golsContra,
+      'posicaoSorteio': j.posicaoSorteio,
     }).toList();
 
     WriteBatch batch = FirebaseFirestore.instance.batch();
-
-    final partidasNaoFinalizadasSnapshot = await campeonatoRef
-    .collection('partidas')
-    .where('finalizada', isEqualTo: false)
-    .get();
-
-    if (partidasNaoFinalizadasSnapshot.docs.length == 1) {
+    if (isUltimaPartida) {
       // Lista de troféus disponíveis
       final listaDeTrofeus = [
         'assets/trofeus/trofeu1.png',
