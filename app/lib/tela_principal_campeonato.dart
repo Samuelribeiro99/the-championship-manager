@@ -33,11 +33,11 @@ class TelaPrincipalCampeonato extends StatefulWidget {
 }
 
 class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
-  // O estado agora é um Future, que será resolvido pelo FutureBuilder
   late Future<void> _dadosCampeonatoFuture;
   List<JogadorNaClassificacao> _classificacao = [];
   List<Partida> _partidas = [];
   Partida? _proximaPartida;
+  String? _trofeuUrl;
 
   @override
   void initState() {
@@ -45,33 +45,53 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
     _dadosCampeonatoFuture = _carregarDadosDoCampeonato();
   }
 
-  // NOVA FUNÇÃO: Busca os dados no Firestore
+  // FUNÇÃO PRINCIPAL: Busca os dados ATUALIZADOS no Firestore
   Future<void> _carregarDadosDoCampeonato() async {
-    // Busca as partidas ordenadas por rodada
-    final partidasSnapshot = await FirebaseFirestore.instance
-        .collection('campeonatos')
-        .doc(widget.campeonatoId)
-        .collection('partidas')
-        .orderBy('rodada')
-        .get();
+    final campeonatoRef = FirebaseFirestore.instance.collection('campeonatos').doc(widget.campeonatoId);
 
-    final partidasCarregadas = partidasSnapshot.docs.map((doc) {
-      final dados = doc.data();
-      // TODO: Carregar também placares e status de finalizada
+    // Busca o documento principal e a subcoleção de partidas ao mesmo tempo
+    final responses = await Future.wait([
+      campeonatoRef.get(),
+      campeonatoRef.collection('partidas').orderBy('rodada').get(),
+    ]);
+
+    final campeonatoSnapshot = responses[0] as DocumentSnapshot;
+    final partidasSnapshot = responses[1] as QuerySnapshot;
+    final dadosCampeonato = campeonatoSnapshot.data() as Map<String, dynamic>;
+
+    // Carrega a classificação JÁ CALCULADA do Firestore
+    if (dadosCampeonato.containsKey('classificacao')) {
+      _classificacao = (dadosCampeonato['classificacao'] as List).map((dadosJogador) {
+        final j = JogadorNaClassificacao(nome: dadosJogador['nome']);
+        j.pontos = dadosJogador['pontos'] ?? 0;
+        j.jogos = dadosJogador['jogos'] ?? 0;
+        j.vitorias = dadosJogador['vitorias'] ?? 0;
+        j.empates = dadosJogador['empates'] ?? 0;
+        j.derrotas = dadosJogador['derrotas'] ?? 0;
+        j.golsPro = dadosJogador['golsPro'] ?? 0;
+        j.golsContra = dadosJogador['golsContra'] ?? 0;
+        return j;
+      }).toList();
+    } else { // Fallback para a primeira vez que o campeonato é aberto
+      _classificacao = (dadosCampeonato['jogadores'] as List)
+          .map((j) => JogadorNaClassificacao(nome: j['nome'])).toList();
+    }
+
+    // Carrega as partidas
+    _partidas = partidasSnapshot.docs.map((doc) {
+      final dados = doc.data() as Map<String, dynamic>;
       return Partida(
+        id: doc.id, // <<< Pega o ID do documento da partida
         rodada: dados['rodada'],
         jogador1: dados['jogador1'],
         jogador2: dados['jogador2'],
-      );
+      )..finalizada = dados['finalizada']; // Carrega o status de finalizada
     }).toList();
 
-    // TODO: A lógica de cálculo da classificação será feita aqui no futuro
-    final classificacaoCarregada = widget.jogadores
-        .map((nome) => JogadorNaClassificacao(nome: nome)).toList();
-
-    _partidas = partidasCarregadas;
-    _classificacao = classificacaoCarregada;
     _proximaPartida = _encontrarProximaPartida(_partidas);
+      if (dadosCampeonato.containsKey('trofeuUrl')) {
+        _trofeuUrl = dadosCampeonato['trofeuUrl'];
+      }
   }
 
   Partida? _encontrarProximaPartida(List<Partida> partidas) {
@@ -101,7 +121,7 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true), // Retorna true se confirmar
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('EXCLUIR'),
+            child: const Text('Excluir'),
           ),
         ],
       ),
@@ -172,10 +192,9 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
           return const BackgroundScaffold(body: Center(child: CircularProgressIndicator()));
         }
         if (snapshot.hasError) {
-          return const BackgroundScaffold(body: Center(child: Text('Erro ao carregar o campeonato.')));
+          return BackgroundScaffold(body: Center(child: Text('Erro ao carregar dados: ${snapshot.error}')));
         }
-
-        // O resto do seu build vai aqui, agora que os dados estão carregados
+        
         return BackgroundScaffold(
           body: Stack(
             children: [
@@ -192,32 +211,37 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                   padding: const EdgeInsets.fromLTRB(16, 80, 16, 120), // Espaço para título e botões
                   child: Column(
                     children: [
-                      Text(
-                        'Próxima partida',
-                        style: AppTextStyles.screenTitle.copyWith(fontSize: 18),
-                      ),
                       if (_proximaPartida != null)
-                        SelectionButton(
-                          svgAsset: 'assets/icons/vai.svg',
-                          onPressed: () {
-                            // ATUALIZE AQUI
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => TelaInserirResultado(
-                                  campeonatoId: widget.campeonatoId,
-                                  partida: _proximaPartida!,
+                          // Se AINDA HÁ uma próxima partida, mostra este texto
+                          Text(
+                            'Próxima partida',
+                            style: AppTextStyles.screenTitle.copyWith(fontSize: 18),
+                          )
+                        else
+                          // Se NÃO HÁ mais partidas, mostra este texto
+                          Text(
+                            'Campeão', // Ou 'Campeonato Finalizado', etc.
+                            style: AppTextStyles.screenTitle.copyWith(fontSize: 18),
+                          ),
+                        if (_proximaPartida != null)
+                          SelectionButton(
+                            svgAsset: 'assets/icons/vai.svg',
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => TelaInserirResultado(
+                                    campeonatoId: widget.campeonatoId,
+                                    partida: _proximaPartida!,
+                                  ),
                                 ),
-                              ),
-                            ).then((_) {
-                              // Esta função será chamada quando a tela de resultado for fechada.
-                              // Recarregamos os dados para atualizar a tela principal.
-                              setState(() {
-                                _dadosCampeonatoFuture = _carregarDadosDoCampeonato();
+                              ).then((_) {
+                                setState(() {
+                                  _dadosCampeonatoFuture = _carregarDadosDoCampeonato();
+                                });
                               });
-                            });
-                          },
-                          child: Row(
+                            },
+                            child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               // Jogador 1 (à esquerda, flexível)
@@ -235,9 +259,9 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
                                 child: SvgPicture.asset(
                                   'assets/icons/x_vs.svg',
-                                  height: 30, // <<< Ajuste a altura do "X" como preferir
+                                  height: 30,
                                   colorFilter: const ColorFilter.mode(
-                                    AppColors.borderYellow, // Ou AppColors.textColor, etc.
+                                    AppColors.borderYellow,
                                     BlendMode.srcIn,
                                   ),
                                 ),
@@ -257,9 +281,19 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                         )
                       else
                         SelectionButton(
-                          text: 'Campeão: ${_classificacao.isNotEmpty ? _classificacao[0].nome : "N/D"}',
+                          text: _classificacao.isNotEmpty ? _classificacao[0].nome : "N/D",
                           svgAsset: 'assets/icons/trofeu.svg',
-                          onPressed: () { /* Navegar para TelaCampeao */ },
+                          onPressed: () {
+                            if (_classificacao.isNotEmpty && _trofeuUrl != null) {
+                              Navigator.push(context, MaterialPageRoute(
+                                builder: (context) => TelaCampeao(
+                                  nomeDoCampeonato: widget.nomeDoCampeonato,
+                                  nomeDoCampeao: _classificacao[0].nome,
+                                  trofeuUrl: _trofeuUrl!,
+                                ),
+                              ));
+                            }
+                          },
                           alignment: Alignment.center,
                         ),
                       

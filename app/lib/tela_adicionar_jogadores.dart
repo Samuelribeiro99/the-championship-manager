@@ -88,9 +88,14 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
         if (jogador1 != "Fantasma" && jogador2 != "Fantasma") {
           // Embaralha quem joga em casa ou fora para ser mais justo
           if (i % 2 == 1) {
-            partidasGeradas.add(Partida(rodada: rodada + 1, jogador1: jogador1, jogador2: jogador2));
+            partidasGeradas.add(Partida(
+              id: '',
+              rodada: rodada + 1,
+              jogador1: jogador1,
+              jogador2: jogador2
+            ));
           } else {
-            partidasGeradas.add(Partida(rodada: rodada + 1, jogador1: jogador2, jogador2: jogador1));
+            partidasGeradas.add(Partida(id: '', rodada: rodada + 1, jogador1: jogador2, jogador2: jogador1));
           }
         }
       }

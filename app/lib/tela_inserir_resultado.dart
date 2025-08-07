@@ -8,6 +8,7 @@ import 'package:app/widgets/match_result_selection.dart';
 import 'package:app/theme/text_styles.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'tela_cronometro.dart';
+import 'dart:math';
 
 class TelaInserirResultado extends StatefulWidget {
   final String campeonatoId;
@@ -29,28 +30,37 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
   final _placar2Key = GlobalKey<PlacarJogadorWidgetState>();
 
   Future<void> _finalizarPartida() async {
-    // 1. Pega os placares dos widgets filhos
     final placar1 = _placar1Key.currentState?.placarAtual;
     final placar2 = _placar2Key.currentState?.placarAtual;
-
     if (placar1 == null || placar2 == null) return;
 
-    // 2. Lógica de atualização da classificação (ex: Pontos Corridos)
-    //    Em um app de produção, essa lógica ficaria em um "service" ou "controller"
-    //    para ser reutilizada em diferentes modos de jogo.
-
-    // Pega o documento do campeonato
     final campeonatoRef = FirebaseFirestore.instance.collection('campeonatos').doc(widget.campeonatoId);
     final campeonatoSnapshot = await campeonatoRef.get();
     final dadosCampeonato = campeonatoSnapshot.data();
     if (dadosCampeonato == null) return;
 
-    // Converte os dados da classificação para nossa classe modelo
-    List<JogadorNaClassificacao> classificacaoAtual = (dadosCampeonato['jogadores'] as List)
-        .map((j) => JogadorNaClassificacao(nome: j['nome']))
-        .toList();
-    
-    // Encontra os jogadores da partida na lista de classificação
+    List<JogadorNaClassificacao> classificacaoAtual;
+
+    // Verifica se o campo 'classificacao' já existe no banco
+    if (dadosCampeonato.containsKey('classificacao') && dadosCampeonato['classificacao'] != null) {
+      // Se sim (não é a primeira partida), carrega os dados salvos
+      classificacaoAtual = (dadosCampeonato['classificacao'] as List).map((dadosJogador) {
+        final j = JogadorNaClassificacao(nome: dadosJogador['nome']);
+        j.pontos = dadosJogador['pontos'] ?? 0;
+        j.jogos = dadosJogador['jogos'] ?? 0;
+        j.vitorias = dadosJogador['vitorias'] ?? 0;
+        j.empates = dadosJogador['empates'] ?? 0;
+        j.derrotas = dadosJogador['derrotas'] ?? 0;
+        j.golsPro = dadosJogador['golsPro'] ?? 0;
+        j.golsContra = dadosJogador['golsContra'] ?? 0;
+        return j;
+      }).toList();
+    } else {
+      // Se não (é a primeira partida), cria a classificação do zero a partir da lista de 'jogadores'
+      classificacaoAtual = (dadosCampeonato['jogadores'] as List)
+          .map((j) => JogadorNaClassificacao(nome: j['nome']))
+          .toList();
+    }
     final jogador1 = classificacaoAtual.firstWhere((j) => j.nome == widget.partida.jogador1);
     final jogador2 = classificacaoAtual.firstWhere((j) => j.nome == widget.partida.jogador2);
 
@@ -64,23 +74,38 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
     jogador2.golsPro += placar2;
     jogador2.golsContra += placar1;
 
-    if (placar1 > placar2) { // Vitória do Jogador 1
+    if (placar1 > placar2) {
       jogador1.pontos += 3;
       jogador1.vitorias++;
       jogador2.derrotas++;
-    } else if (placar2 > placar1) { // Vitória do Jogador 2
+    } else if (placar2 > placar1) {
       jogador2.pontos += 3;
       jogador2.vitorias++;
       jogador1.derrotas++;
-    } else { // Empate
+    } else {
       jogador1.pontos += 1;
       jogador2.pontos += 1;
       jogador1.empates++;
       jogador2.empates++;
     }
 
-    // Ordena a classificação
-    classificacaoAtual.sort((a, b) => b.pontos.compareTo(a.pontos));
+    // Ordena a classificação por pontos e depois por saldo de gols
+    classificacaoAtual.sort((a, b) {
+      // Critério 1: Mais Pontos
+      int comparacaoPontos = b.pontos.compareTo(a.pontos);
+      if (comparacaoPontos != 0) return comparacaoPontos;
+
+      // Critério 2: Maior Saldo de Gols (SG)
+      int comparacaoSG = b.saldoDeGols.compareTo(a.saldoDeGols);
+      if (comparacaoSG != 0) return comparacaoSG;
+
+      // Critério 3: Mais Gols Pró (GP) - Gols Marcados
+      int comparacaoGP = b.golsPro.compareTo(a.golsPro);
+      if (comparacaoGP != 0) return comparacaoGP;
+
+      // Se tudo continuar empatado, por enquanto mantém a ordem
+      return 0;
+    });
     
     // Converte de volta para um formato que o Firestore entende (Map)
     final novaClassificacaoParaSalvar = classificacaoAtual.map((j) => {
@@ -94,21 +119,40 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
       'golsContra': j.golsContra,
     }).toList();
 
-
-    // 3. Salva os dados no Firestore
     WriteBatch batch = FirebaseFirestore.instance.batch();
-    
-    // Atualiza a classificação no documento principal
+
+    final partidasNaoFinalizadasSnapshot = await campeonatoRef
+    .collection('partidas')
+    .where('finalizada', isEqualTo: false)
+    .get();
+
+    if (partidasNaoFinalizadasSnapshot.docs.length == 1) {
+      // Lista de troféus disponíveis
+      final listaDeTrofeus = [
+        'assets/trofeus/trofeu1.png',
+        'assets/trofeus/trofeu2.png',
+        'assets/trofeus/trofeu3.png',
+        'assets/trofeus/trofeu4.png',
+        'assets/trofeus/trofeu5.png',
+        'assets/trofeus/trofeu6.png',
+        'assets/trofeus/trofeu7.png',
+        'assets/trofeus/trofeu8.png',
+      ];
+      final trofeuUrlSorteado = listaDeTrofeus[Random().nextInt(listaDeTrofeus.length)];
+      batch.update(campeonatoRef, {
+        'status': 'finalizado',
+        'trofeuUrl': trofeuUrlSorteado,
+      });
+    }
+
     batch.update(campeonatoRef, {'classificacao': novaClassificacaoParaSalvar});
 
     // Atualiza a partida na subcoleção
-    // TODO: Precisaremos de um ID para a partida
-    // DocumentReference partidaRef = campeonatoRef.collection('partidas').doc(widget.partida.id);
-    // batch.update(partidaRef, {'placar1': placar1, 'placar2': placar2, 'finalizada': true});
+    DocumentReference partidaRef = campeonatoRef.collection('partidas').doc(widget.partida.id);
+    batch.update(partidaRef, {'placar1': placar1, 'placar2': placar2, 'finalizada': true});
     
     await batch.commit();
 
-    // 4. Volta para a tela principal
     if (mounted) {
       Navigator.of(context).pop();
     }

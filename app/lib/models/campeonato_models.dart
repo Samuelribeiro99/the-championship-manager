@@ -16,6 +16,7 @@ class JogadorNaClassificacao {
 }
 
 class Partida {
+  final String id;
   final int rodada;
   final String jogador1;
   final String jogador2;
@@ -23,5 +24,10 @@ class Partida {
   int? placar2;
   bool finalizada = false;
 
-  Partida({required this.rodada, required this.jogador1, required this.jogador2}); // <<< ATUALIZE AQUI
+  Partida({
+    required this.id,
+    required this.rodada,
+    required this.jogador1,
+    required this.jogador2
+  });
 }
