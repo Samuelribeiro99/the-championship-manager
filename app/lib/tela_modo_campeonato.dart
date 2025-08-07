@@ -25,7 +25,7 @@ class TelaModoCampeonato extends StatelessWidget {
         children: [
           Align(
             alignment: const Alignment(0.0, -0.85),
-            child: Text('Modo de Jogo', style: AppTextStyles.screenTitle),
+            child: Text('Modo de jogo', style: AppTextStyles.screenTitle),
           ),
           Positioned(
             left: 20,
@@ -47,14 +47,14 @@ class TelaModoCampeonato extends StatelessWidget {
                     iconShape: BoxShape.rectangle,
                     onPressed: () => _selecionarModo(context, ModoCampeonato.pontosCorridosIda),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 80),
                   MenuButton(
                     text: 'Pontos + Final',
                     svgAsset: 'assets/icons/pontos_final.svg',
                     iconShape: BoxShape.rectangle,
                     onPressed: () => _selecionarModo(context, ModoCampeonato.pontosCorridosIdaComFinal),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 80),
                   MenuButton(
                     text: 'Torneio',
                     svgAsset: 'assets/icons/torneio.svg',

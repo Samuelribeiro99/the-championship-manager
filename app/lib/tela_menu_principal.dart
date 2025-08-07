@@ -21,7 +21,7 @@ class TelaMenuPrincipal extends StatelessWidget {
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
-               const SizedBox(height: 12),
+               const SizedBox(height: 30),
               Row(
                 children: [
                   // Sua Logo

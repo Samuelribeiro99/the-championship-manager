@@ -104,7 +104,7 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 120),
+                    const SizedBox(height: 150),
                     TextField(
                       controller: _senhaAntigaController,
                       decoration: const InputDecoration(labelText: 'Senha Antiga'),

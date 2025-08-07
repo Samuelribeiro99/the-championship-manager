@@ -47,7 +47,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
       final confirmarExclusao = await _mostrarPopupConfirmacao(
         titulo: 'Excluir conta permanentemente?',
         mensagem: 'ATENÇÃO: Esta ação é irreversível. Todos os seus campeonatos e dados serão perdidos para sempre.',
-        textoConfirmar: 'SIM, EXCLUIR',
+        textoConfirmar: 'Sim, excluir',
       );
 
       // 4. Se o usuário confirmar no pop-up...
@@ -114,8 +114,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 children: [
-                  const SizedBox(height: 120), // Espaço para o título não sobrepor
-
+                  const SizedBox(height: 150), // Espaço para o título não sobrepor
                   // --- LISTA DE BOTÕES NO TOPO ---
                   SelectionButton(
                     text: 'Trocar senha',

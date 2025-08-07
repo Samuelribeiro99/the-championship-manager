@@ -106,7 +106,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Espaço para não ficar atrás do título flutuante
-                    const SizedBox(height: 120),
+                    const SizedBox(height: 150),
 
                     TextField(
                       controller: _emailController,

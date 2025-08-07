@@ -41,7 +41,7 @@ class TelaHistorico extends StatelessWidget {
           // --- CONTEÚDO PRINCIPAL COM FUTUREBUILDER ---
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 120, 24, 24),
+              padding: const EdgeInsets.fromLTRB(24, 140, 24, 140),
               child: FutureBuilder<QuerySnapshot>(
                 future: _buscarCampeonatos(),
                 builder: (context, snapshot) {

@@ -109,7 +109,7 @@ class _TelaTrocarEmailState extends State<TelaTrocarEmail> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 120),
+                    const SizedBox(height: 150),
                     // Campo de e-mail antigo (desabilitado para edição)
                     TextField(
                       controller: _emailAntigoController,
