@@ -4,10 +4,12 @@ import 'package:app/theme/app_colors.dart';
 
 class PlacarJogadorWidget extends StatefulWidget {
   final String nomeJogador;
+  final int? placarInicial;
 
   const PlacarJogadorWidget({
     super.key,
     required this.nomeJogador,
+    this.placarInicial,
   });
 
   @override
@@ -17,7 +19,13 @@ class PlacarJogadorWidget extends StatefulWidget {
 class PlacarJogadorWidgetState extends State<PlacarJogadorWidget> {
   int _placar = 0;
 
-  // Permite que a tela "pai" leia o placar deste widget
+  @override
+  void initState() {
+    super.initState();
+    // Se um placar inicial foi fornecido, usa ele. Senão, começa com 0.
+    _placar = widget.placarInicial ?? 0;
+  }
+
   int get placarAtual => _placar;
 
   void _incrementarPlacar() {

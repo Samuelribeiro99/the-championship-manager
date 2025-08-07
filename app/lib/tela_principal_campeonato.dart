@@ -178,7 +178,7 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
   void _mostrarInfoTabela() {
     showDialog(context: context, builder: (context) => AlertDialog(
       title: const Text('Legenda da Tabela'),
-      content: const Text('P: Pontos\nJ: Jogos\nV: Vitórias\nE: Empates\nSG: Saldo de Gols\nGP: Gols Pró\nGC: Gols Contra\nÉ possível arrastar a tabela para todos os lados. Experimente!'),
+      content: const Text('P: Pontos\nJ: Jogos\nV: Vitórias\nE: Empates\nD: Derrotas\nSG: Saldo de gols\nGP: Gols pró\nGC: Gols contra\nCritério de desempate: P > V > SG > GP > Confronto direto > Sorteio\nÉ possível arrastar a tabela para todos os lados. Experimente!'),
       actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK'))],
     ));
   }
@@ -208,7 +208,7 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
               ),
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 80, 16, 120), // Espaço para título e botões
+                  padding: const EdgeInsets.fromLTRB(16, 100, 16, 130), // Espaço para título e botões
                   child: Column(
                     children: [
                       if (_proximaPartida != null)
@@ -297,7 +297,7 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                           alignment: Alignment.center,
                         ),
                       
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 12),
 
                       // --- TABELA DE CLASSIFICAÇÃO ---
                       Expanded(
@@ -398,9 +398,16 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                     SquareIconButton(
                       svgAsset: 'assets/icons/cronograma.svg',
                       onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(
-                          builder: (context) => TelaCronograma(campeonatoId: widget.campeonatoId),
-                        ));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TelaCronograma(campeonatoId: widget.campeonatoId),
+                          ),
+                        ).then((_) {                          
+                          setState(() {
+                          _dadosCampeonatoFuture = _carregarDadosDoCampeonato();
+                          });
+                        });
                       },
                     ),
                     SquareIconButton(

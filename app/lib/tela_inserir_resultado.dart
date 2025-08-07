@@ -40,10 +40,7 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
     if (dadosCampeonato == null) return;
 
     List<JogadorNaClassificacao> classificacaoAtual;
-
-    // Verifica se o campo 'classificacao' já existe no banco
     if (dadosCampeonato.containsKey('classificacao') && dadosCampeonato['classificacao'] != null) {
-      // Se sim (não é a primeira partida), carrega os dados salvos
       classificacaoAtual = (dadosCampeonato['classificacao'] as List).map((dadosJogador) {
         final j = JogadorNaClassificacao(nome: dadosJogador['nome']);
         j.pontos = dadosJogador['pontos'] ?? 0;
@@ -57,7 +54,6 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
         return j;
       }).toList();
     } else {
-      // Se não (é a primeira partida), cria a classificação do zero a partir da lista de 'jogadores'
       classificacaoAtual = (dadosCampeonato['jogadores'] as List)
           .map((j) => JogadorNaClassificacao(nome: j['nome']))
           .toList();
@@ -65,9 +61,32 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
     final jogador1 = classificacaoAtual.firstWhere((j) => j.nome == widget.partida.jogador1);
     final jogador2 = classificacaoAtual.firstWhere((j) => j.nome == widget.partida.jogador2);
 
-    // TODO: Adicionar lógica para reverter o resultado antigo se estiver editando
+   // --- LÓGICA CORRIGIDA PARA REVERTER RESULTADO ANTIGO (SE FOR EDIÇÃO) ---
+    if (widget.partida.finalizada) {
+      // Se a partida já estava finalizada, estamos editando.
+      // Primeiro, desfazemos os status antigos.
+      jogador1.jogos--;
+      jogador2.jogos--;
+      jogador1.golsPro -= widget.partida.placar1!;
+      jogador1.golsContra -= widget.partida.placar2!;
+      jogador2.golsPro -= widget.partida.placar2!;
+      jogador2.golsContra -= widget.partida.placar1!;
 
-    // Aplica o novo resultado
+      if (widget.partida.placar1! > widget.partida.placar2!) { // Vitória antiga do Jogador 1
+        jogador1.pontos -= 3;
+        jogador1.vitorias--;
+        jogador2.derrotas--;
+      } else if (widget.partida.placar2! > widget.partida.placar1!) { // Vitória antiga do Jogador 2
+        jogador2.pontos -= 3;
+        jogador2.vitorias--;
+        jogador1.derrotas--;
+      } else { // Empate antigo
+        jogador1.pontos -= 1;
+        jogador2.pontos -= 1;
+        jogador1.empates--;
+        jogador2.empates--;
+      }
+    }
     jogador1.jogos++;
     jogador2.jogos++;
     jogador1.golsPro += placar1;
@@ -206,7 +225,6 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return BackgroundScaffold(
@@ -228,6 +246,7 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
                     child: PlacarJogadorWidget(
                       key: _placar1Key,
                       nomeJogador: widget.partida.jogador1,
+                      placarInicial: widget.partida.placar1,
                     ),
                   ),
                   const Padding(
@@ -246,6 +265,7 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
                     child: PlacarJogadorWidget(
                       key: _placar2Key,
                       nomeJogador: widget.partida.jogador2,
+                      placarInicial: widget.partida.placar2,
                     ),
                   ),
                   const SizedBox(height: 70),
