@@ -36,6 +36,10 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
   // --- LÓGICA DA TELA ---
 
   void _adicionarJogador() {
+    if (_jogadores.length >= 32) {
+      _mostrarPopupAlerta('O número máximo de 32 jogadores já foi atingido.');
+      return; // Impede a adição de mais jogadores
+    }
     final nome = _nomeJogadorController.text.trim();
     
     if (nome.isEmpty) {
@@ -112,10 +116,6 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
     // Validações de número de jogadores
     if (_jogadores.length < 4) {
       _mostrarPopupAlerta('É necessário adicionar pelo menos 4 jogadores.');
-      return;
-    }
-    if (_jogadores.length > 32) {
-      _mostrarPopupAlerta('O número máximo de jogadores é 32.');
       return;
     }
 
@@ -233,7 +233,7 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
                         controller: _nomeJogadorController,
                         maxLength: 25, // Limite para o nome do jogador
                         decoration: const InputDecoration(
-                          labelText: 'Nome do Jogador',
+                          labelText: 'Nome do jogador',
                           counterText: "", // Esconde o contador
                         ),
                       ),
