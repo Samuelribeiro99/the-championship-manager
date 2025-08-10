@@ -85,13 +85,13 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return BackgroundScaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           const Align(
-            alignment: Alignment(0.0, -0.8),
+            alignment: Alignment(0.0, -0.85),
             child: Text(
               'Trocar senha',
               style: AppTextStyles.screenTitle,
@@ -104,7 +104,7 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 150),
+                    const SizedBox(height: 130),
                     TextField(
                       controller: _senhaAntigaController,
                       decoration: const InputDecoration(labelText: 'Senha Antiga'),
@@ -119,7 +119,7 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
                     ),
                     // ------------------------------------------
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 12),
                     Center(
                       child: OutlinedButton(
                         onPressed: _loading ? null : _salvarNovaSenha,
@@ -138,7 +138,7 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
           ),
           Positioned(
             left: 20,
-            bottom: isKeyboardVisible ? 8 : 60,
+            bottom: 60,
             child: SquareIconButton(
               svgAsset: 'assets/icons/voltar.svg',
               onPressed: () => Navigator.of(context).pop(),

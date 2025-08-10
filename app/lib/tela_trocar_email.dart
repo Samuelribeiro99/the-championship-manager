@@ -90,9 +90,9 @@ class _TelaTrocarEmailState extends State<TelaTrocarEmail> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return BackgroundScaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           const Align(
@@ -141,7 +141,7 @@ class _TelaTrocarEmailState extends State<TelaTrocarEmail> {
           ),
           Positioned(
             left: 20,
-            bottom: isKeyboardVisible ? 8 : 60,
+            bottom: 60,
             child: SquareIconButton(
               svgAsset: 'assets/icons/voltar.svg',
               onPressed: () => Navigator.of(context).pop(),

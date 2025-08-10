@@ -82,10 +82,10 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
   @override
   Widget build(BuildContext context) {
-        final bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
 
     // A estrutura principal agora é um Stack, dentro do nosso BackgroundScaffold
     return BackgroundScaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           // --- ITEM 1: TÍTULO "CADASTRE-SE" POSICIONADO LIVREMENTE NO TOPO ---
@@ -106,7 +106,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Espaço para não ficar atrás do título flutuante
-                    const SizedBox(height: 150),
+                    const SizedBox(height: 130),
 
                     TextField(
                       controller: _emailController,
@@ -118,7 +118,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                       passwordController: _passwordController,
                       confirmPasswordController: _confirmPasswordController,
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 12),
                     
                     // Converti seu ElevatedButton para um OutlinedButton para manter o estilo
                     Center(
@@ -142,7 +142,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
           // --- ITEM 3: BOTÃO DE VOLTAR POSICIONADO NO CANTO INFERIOR ESQUERDO ---
           Positioned(
             left: 20,
-            bottom: isKeyboardVisible ? 8 : 60,
+            bottom: 60,
             child: SquareIconButton(
               svgAsset: 'assets/icons/voltar.svg', // <<< Apenas muda o ícone
               onPressed: () => Navigator.of(context).pop(), // <<< E a ação
