@@ -145,7 +145,7 @@ class _TelaNomeCampeonatoState extends State<TelaNomeCampeonato> {
             right: 20,
             bottom: isKeyboardVisible ? 20 : 60,
             child: SquareIconButton(
-              svgAsset: 'assets/icons/check.svg', // <<< SEU ÍCONE DE CONFIRMAR
+              svgAsset: 'assets/icons/check.svg',
               onPressed: _avancarParaAdicionarJogadores,
             ),
           ),

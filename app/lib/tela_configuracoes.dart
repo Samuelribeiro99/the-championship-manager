@@ -125,7 +125,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                   ),
                   const SizedBox(height: 16),
                   SelectionButton(
-                    text: 'Trocar email',
+                    text: 'Trocar e-mail',
                     svgAsset: 'assets/icons/email.svg',
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaTrocarEmail()));

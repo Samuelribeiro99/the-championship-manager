@@ -178,7 +178,7 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
   void _mostrarInfoTabela() {
     showDialog(context: context, builder: (context) => AlertDialog(
       title: const Text('Legenda da Tabela'),
-      content: const Text('P: Pontos\nJ: Jogos\nV: Vitórias\nE: Empates\nD: Derrotas\nSG: Saldo de gols\nGP: Gols pró\nGC: Gols contra\nCritério de desempate: P > V > SG > GP > Confronto direto > Sorteio\nÉ possível arrastar a tabela para todos os lados. Experimente!'),
+      content: const Text('P: Pontos\nJ: Jogos\nV: Vitórias\nE: Empates\nD: Derrotas\nSG: Saldo de gols\nGP: Gols pró\nGC: Gols contra\nCritério de desempate: P > V > SG > GP > Confronto direto > Sorteio\nO modo de pontos corridos é com partidas somente ida\nÉ possível arrastar a tabela para todos os lados. Experimente!'),
       actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK'))],
     ));
   }

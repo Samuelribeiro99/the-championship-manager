@@ -55,14 +55,16 @@ class MenuButton extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 30),
-          Text(
-            text,
-            style: const TextStyle(
-              fontFamily: 'PostNoBillsColombo',
-              fontSize: 29,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textColor,
+          Expanded(
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'PostNoBillsColombo',
+                fontSize: 29,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textColor,
+              ),
             ),
           ),
         ],
