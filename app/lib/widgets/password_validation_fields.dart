@@ -21,6 +21,8 @@ class _PasswordValidationFieldsState extends State<PasswordValidationFields> {
   bool _temNumero = false;
   bool _temCaractereEspecial = false;
   bool _senhasConferem = true;
+  bool _novaSenhaObscura = true;
+  bool _confirmarSenhaObscura = true;
 
   @override
   void initState() {
@@ -61,8 +63,21 @@ class _PasswordValidationFieldsState extends State<PasswordValidationFields> {
       children: [
         TextField(
           controller: widget.passwordController,
-          decoration: const InputDecoration(labelText: 'Nova Senha'),
-          obscureText: true,
+          obscureText: _novaSenhaObscura, // Usa a variável de estado
+          decoration: InputDecoration(
+            labelText: 'Senha', // Ajustado para ser mais genérico
+            // Adiciona o ícone de olho aqui
+            suffixIcon: IconButton(
+              icon: Icon(
+                _novaSenhaObscura ? Icons.visibility_off : Icons.visibility,
+              ),
+              onPressed: () {
+                setState(() {
+                  _novaSenhaObscura = !_novaSenhaObscura;
+                });
+              },
+            ),
+          ),
         ),
         const SizedBox(height: 16),
         if (widget.passwordController.text.isNotEmpty && !todosRequisitosAtendidos)
@@ -70,8 +85,21 @@ class _PasswordValidationFieldsState extends State<PasswordValidationFields> {
         
         TextField(
           controller: widget.confirmPasswordController,
-          decoration: const InputDecoration(labelText: 'Confirmar Nova Senha'),
-          obscureText: true,
+          obscureText: _confirmarSenhaObscura, // Usa a variável de estado
+          decoration: InputDecoration(
+            labelText: 'Confirmar Senha',
+            // Adiciona o ícone de olho aqui também
+            suffixIcon: IconButton(
+              icon: Icon(
+                _confirmarSenhaObscura ? Icons.visibility_off : Icons.visibility,
+              ),
+              onPressed: () {
+                setState(() {
+                  _confirmarSenhaObscura = !_confirmarSenhaObscura;
+                });
+              },
+            ),
+          ),
         ),
         const SizedBox(height: 8),
         if (widget.confirmPasswordController.text.isNotEmpty)

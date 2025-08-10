@@ -14,6 +14,7 @@ class TelaReautenticacao extends StatefulWidget {
 class _TelaReautenticacaoState extends State<TelaReautenticacao> {
   final _passwordController = TextEditingController();
   bool _loading = false;
+  bool _senhaObscura = true;
 
   @override
   void dispose() {
@@ -93,8 +94,21 @@ class _TelaReautenticacaoState extends State<TelaReautenticacao> {
                   const SizedBox(height: 24),
                   TextField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(labelText: 'Senha'),
-                    obscureText: true,
+                    obscureText: _senhaObscura, // Usa a variável de estado
+                    decoration: InputDecoration(
+                      labelText: 'Senha',
+                      // Adiciona o ícone de olho
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _senhaObscura ? Icons.visibility_off : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _senhaObscura = !_senhaObscura;
+                          });
+                        },
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 32),
                   Center(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'tela_cadastro.dart'; // Importa a tela de cadastro para navegação
+import 'tela_cadastro.dart';
 import 'package:app/widgets/background_scaffold.dart';
 import 'package:app/theme/app_colors.dart';
 import 'package:app/theme/text_styles.dart';
@@ -16,6 +16,7 @@ class _TelaLoginState extends State<TelaLogin> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _loading = false;
+  bool _senhaObscura = true;
 
   @override
   void dispose() {
@@ -82,8 +83,21 @@ class _TelaLoginState extends State<TelaLogin> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(labelText: 'Senha'),
-                    obscureText: true,
+                    obscureText: _senhaObscura, // Usa a variável de estado
+                    decoration: InputDecoration(
+                      labelText: 'Senha',
+                      // Adiciona o ícone de olho aqui
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _senhaObscura ? Icons.visibility_off : Icons.visibility,
+                        ),
+                                             onPressed: () {
+                          setState(() {
+                            _senhaObscura = !_senhaObscura;
+                          });
+                        },
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 32),
                   Center(
