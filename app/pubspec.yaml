@@ -21,7 +21,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  flutter_launcher_icons: ^0.13.1
   flutter_lints: ^6.0.0
 
 flutter:
@@ -40,3 +40,8 @@ flutter:
       fonts:
         - asset: fonts/porter-sans-inline-block.ttf
           weight: 400
+
+flutter_launcher_icons:
+  android: true
+  ios: false 
+  image_path: "assets/images/app_icon.png"

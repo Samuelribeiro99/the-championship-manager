@@ -64,14 +64,14 @@ class TelaMenuPrincipal extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 16),
-              MenuButton(
-                text: 'Estatísticas',
-                svgAsset: 'assets/icons/estatisticas.svg',
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaEstatisticas()));
-                },
-              ),
-              const SizedBox(height: 16),
+              // MenuButton(
+              //   text: 'Estatísticas',
+              //   svgAsset: 'assets/icons/estatisticas.svg',
+              //   onPressed: () {
+              //     Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaEstatisticas()));
+              //   },
+              // ),
+              // const SizedBox(height: 16),
               MenuButton(
                 text: 'Configurações',
                 svgAsset: 'assets/icons/configuracoes.svg',
