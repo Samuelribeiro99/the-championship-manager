@@ -230,6 +230,7 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
                   children: [
                     Expanded(
                       child: TextField(
+                        textCapitalization: TextCapitalization.sentences,
                         controller: _nomeJogadorController,
                         maxLength: 25, // Limite para o nome do jogador
                         decoration: const InputDecoration(

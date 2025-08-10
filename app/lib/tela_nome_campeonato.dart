@@ -117,6 +117,7 @@ class _TelaNomeCampeonatoState extends State<TelaNomeCampeonato> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TextField(
+                    textCapitalization: TextCapitalization.sentences,
                     controller: _nomeController,
                     maxLength: 20,
                     decoration: const InputDecoration(
