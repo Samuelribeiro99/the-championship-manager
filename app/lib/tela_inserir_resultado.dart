@@ -200,10 +200,6 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
         'assets/trofeus/trofeu2.png',
         'assets/trofeus/trofeu3.png',
         'assets/trofeus/trofeu4.png',
-        'assets/trofeus/trofeu5.png',
-        'assets/trofeus/trofeu6.png',
-        'assets/trofeus/trofeu7.png',
-        'assets/trofeus/trofeu8.png',
       ];
       final trofeuUrlSorteado = listaDeTrofeus[Random().nextInt(listaDeTrofeus.length)];
       batch.update(campeonatoRef, {
