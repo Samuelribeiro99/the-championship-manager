@@ -47,7 +47,7 @@ class TelaSobre extends StatelessWidget {
                         // 3. O SingleChildScrollView torna o conteúdo interno rolável
                         child: SingleChildScrollView(
                           child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
