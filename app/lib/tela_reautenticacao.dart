@@ -1,8 +1,11 @@
+import 'package:app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/widgets/background_scaffold.dart';
-import 'package:app/widgets/square_icon_button.dart'; // <<< 1. IMPORTE O BOTÃO
+import 'package:app/widgets/square_icon_button.dart';
 import 'package:app/theme/text_styles.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:app/utils/popup_utils.dart';
 
 class TelaReautenticacao extends StatefulWidget {
   const TelaReautenticacao({super.key});
@@ -24,9 +27,21 @@ class _TelaReautenticacaoState extends State<TelaReautenticacao> {
 
   Future<void> _reautenticar() async {
     FocusScope.of(context).unfocus();
+    
+    if (_passwordController.text.trim().isEmpty) {
+      mostrarPopupAlerta(context, 'Por favor, digite sua senha.');
+      return;
+    }
+
     setState(() { _loading = true; });
 
     try {
+      final temConexao = await _verificarConexaoFirebase();
+      if (!temConexao) {
+        mostrarPopupAlerta(context, 'Não foi possível se conectar ao nosso serviço. Verifique sua conexão com a internet.');
+        return; // O finally abaixo cuidará de desativar o loading
+      }
+
       final user = FirebaseAuth.instance.currentUser;
       if (user == null || user.email == null) {
         throw Exception("Usuário não encontrado ou sem email.");
@@ -48,15 +63,25 @@ class _TelaReautenticacaoState extends State<TelaReautenticacao> {
       if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
         mensagemErro = 'Senha incorreta. Tente novamente.';
       }
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(mensagemErro), backgroundColor: Colors.red),
-        );
-      }
+      if (mounted) mostrarPopupAlerta(context, mensagemErro);
     } finally {
       if (mounted) {
         setState(() { _loading = false; });
       }
+    }
+  }
+
+  // Função local para verificar a conexão
+  Future<bool> _verificarConexaoFirebase() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('connectivityCheck')
+          .doc('check')
+          .get(const GetOptions(source: Source.server))
+          .timeout(const Duration(seconds: 5));
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -118,7 +143,7 @@ class _TelaReautenticacaoState extends State<TelaReautenticacao> {
                         minimumSize: WidgetStateProperty.all(const Size(200, 50)),
                       ),
                       child: _loading 
-                          ? const CircularProgressIndicator(color: Colors.white) 
+                          ? const CircularProgressIndicator(color: AppColors.borderYellow) 
                           : const Text('Confirmar'),
                     ),
                   ),

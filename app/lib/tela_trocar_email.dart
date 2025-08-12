@@ -5,6 +5,8 @@ import 'package:app/widgets/square_icon_button.dart';
 import 'package:app/utils/validators.dart';
 import 'tela_reautenticacao.dart';
 import 'package:app/theme/text_styles.dart';
+import 'package:app/utils/connectivity_utils.dart';
+import 'package:app/utils/popup_utils.dart';
 
 class TelaTrocarEmail extends StatefulWidget {
   const TelaTrocarEmail({super.key});
@@ -16,7 +18,6 @@ class TelaTrocarEmail extends StatefulWidget {
 class _TelaTrocarEmailState extends State<TelaTrocarEmail> {
   final _emailNovoController = TextEditingController();
   final _emailAntigoController = TextEditingController();
-  bool _loading = false;
 
   @override
   void initState() {
@@ -38,12 +39,13 @@ class _TelaTrocarEmailState extends State<TelaTrocarEmail> {
     // 1. Validação do formato do novo e-mail
     final erroEmail = Validators.validateEmail(_emailNovoController.text.trim());
     if (erroEmail != null) {
-      _exibirAlerta(erroEmail);
+      mostrarPopupAlerta(context, erroEmail);
       return;
     }
 
-    setState(() { _loading = true; });
-
+    await executarComVerificacaoDeInternet(
+      context,
+      acao: () async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('Usuário não encontrado.');
@@ -54,43 +56,39 @@ class _TelaTrocarEmailState extends State<TelaTrocarEmail> {
         MaterialPageRoute(builder: (context) => const TelaReautenticacao()),
       );
 
-      // 3. Se a reautenticação foi bem-sucedida...
-      if (reautenticado == true && mounted) {
-        // 4. ...tenta atualizar o e-mail.
-        // O método verifyBeforeUpdateEmail é mais seguro, pois envia um link de confirmação.
-        await user.verifyBeforeUpdateEmail(_emailNovoController.text.trim());
-        
-        _exibirAlerta(
-          'Link de verificação enviado para o seu novo e-mail! Por favor, confirme a alteração.',
-          success: true,
-        );
-        Navigator.of(context).pop(); // Volta para a tela de configurações
-      }
-    } on FirebaseAuthException catch (e) {
-      String mensagemErro = 'Ocorreu um erro.';
-      if (e.code == 'email-already-in-use') {
-        mensagemErro = 'Este e-mail já está sendo utilizado por outra conta.';
-      }
-      _exibirAlerta(mensagemErro);
-    } finally {
-      if (mounted) {
-        setState(() { _loading = false; });
-      }
-    }
-  }
-
-  void _exibirAlerta(String message, {bool success = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: success ? Colors.green : Colors.red,
-      ),
+          // Se a reautenticação foi bem-sucedida...
+          if (reautenticado == true && mounted) {
+            // Tenta atualizar o e-mail.
+            await user.verifyBeforeUpdateEmail(_emailNovoController.text.trim());
+            
+            // Fecha o loading que o assistente abriu
+            Navigator.of(context).pop();
+            // Mostra o alerta de sucesso
+            await mostrarPopupAlerta(context, 'Link de verificação enviado para o seu novo e-mail! Por favor, confirme a alteração.');
+            // Fecha a tela de troca de e-mail
+            if (mounted) Navigator.of(context).pop();
+          } else {
+            // Se o usuário cancelou a reautenticação, apenas fecha o loading
+            if (mounted) Navigator.of(context).pop();
+          }
+        } on FirebaseAuthException catch (e) {
+          // Garante que o loading seja fechado antes de mostrar o erro
+          if (mounted) Navigator.of(context).pop();
+          
+          String mensagemErro = 'Ocorreu um erro.';
+          if (e.code == 'email-already-in-use') {
+            mensagemErro = 'Este e-mail já está sendo utilizado por outra conta.';
+          } else {
+            mensagemErro = e.message ?? mensagemErro;
+          }
+          if (mounted) mostrarPopupAlerta(context, mensagemErro);
+        }
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-
     return BackgroundScaffold(
       resizeToAvoidBottomInset: false,
       body: Stack(
@@ -125,13 +123,11 @@ class _TelaTrocarEmailState extends State<TelaTrocarEmail> {
                     const SizedBox(height: 32),
                     Center(
                       child: OutlinedButton(
-                        onPressed: _loading ? null : _salvarNovoEmail,
+                        onPressed: _salvarNovoEmail, 
                         style: OutlinedButton.styleFrom().copyWith(
                           minimumSize: WidgetStateProperty.all(const Size(200, 50)),
                         ),
-                        child: _loading 
-                            ? const CircularProgressIndicator(color: Colors.white) 
-                            : const Text('Salvar'),
+                        child: const Text('Salvar'),
                       ),
                     ),
                   ],

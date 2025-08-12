@@ -87,7 +87,7 @@ class _PasswordValidationFieldsState extends State<PasswordValidationFields> {
           controller: widget.confirmPasswordController,
           obscureText: _confirmarSenhaObscura, // Usa a variável de estado
           decoration: InputDecoration(
-            labelText: 'Confirmar Senha',
+            labelText: 'Confirmar senha',
             // Adiciona o ícone de olho aqui também
             suffixIcon: IconButton(
               icon: Icon(

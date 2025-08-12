@@ -8,6 +8,7 @@ import 'package:app/theme/text_styles.dart';
 import 'package:app/theme/app_colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:app/utils/connectivity_utils.dart';
 
 // Importe suas telas placeholder
 import 'tela_inserir_resultado.dart';
@@ -134,15 +135,12 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
       mensagem: 'Esta ação é irreversível e todos os dados deste campeonato serão perdidos. Deseja continuar?',
     );
 
-    if (confirmar == true && mounted) {
-      try {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => const Center(child: CircularProgressIndicator()),
-        );
+    if (confirmar != true) return;
 
-        // Pega a referência do documento do campeonato
+    // 2. Se confirmou, AGORA chamamos nosso assistente que verifica a internet.
+    await executarComVerificacaoDeInternet(
+      context,
+      acao: () async {
         final campeonatoRef = FirebaseFirestore.instance
             .collection('campeonatos')
             .doc(widget.campeonatoId);
@@ -161,25 +159,18 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
         // 3. Depois de deletar as partidas, deleta o documento principal do campeonato
         await campeonatoRef.delete();
 
-        if (mounted) Navigator.of(context).pop(); // Esconde o carregamento
-
         if (mounted) {
           Navigator.of(context).popUntil((route) => route.isFirst);
         }
-
-      } catch (e) {
-        if (mounted) Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao excluir o campeonato: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
+      },
+    );
   }
+    
   void _mostrarInfoTabela() {
     showDialog(context: context, builder: (context) => AlertDialog(
       title: const Text('Legenda da Tabela'),
       content: const Text('P: Pontos\nJ: Jogos\nV: Vitórias\nE: Empates\nD: Derrotas\nSG: Saldo de gols\nGP: Gols pró\nGC: Gols contra\nCritério de desempate: P > V > SG > GP > Confronto direto > Sorteio\nO modo de pontos corridos é com partidas somente ida\nÉ possível arrastar a tabela para todos os lados. Experimente!'),
-      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK'))],
+      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Ok'))],
     ));
   }
 

@@ -5,6 +5,8 @@ import 'package:app/widgets/selection_button.dart';
 import 'package:app/widgets/square_icon_button.dart';
 import 'tela_reautenticacao.dart';
 import 'package:app/theme/text_styles.dart';
+import 'package:app/utils/connectivity_utils.dart';
+import 'package:app/utils/popup_utils.dart';
 
 // Importe as telas que vamos usar
 import 'tela_trocar_senha.dart';
@@ -35,35 +37,39 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
   }
 
   Future<void> _excluirConta() async {
-    // 1. Navega para a tela de reautenticação e espera um resultado
+    // 1. Reautenticação
     final bool? reautenticado = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (context) => const TelaReautenticacao()),
     );
 
-    // 2. Se a reautenticação foi bem-sucedida (retornou 'true')...
-    if (reautenticado == true && mounted) {
-      // 3. ...mostra o pop-up final de confirmação.
-      final confirmarExclusao = await _mostrarPopupConfirmacao(
-        titulo: 'Excluir conta permanentemente?',
-        mensagem: 'ATENÇÃO: Esta ação é irreversível. Todos os seus campeonatos e dados serão perdidos para sempre.',
-        textoConfirmar: 'Sim, excluir',
-      );
+    // Se o usuário não se reautenticou (voltou ou falhou), para a execução.
+    if (reautenticado != true) return;
 
-      // 4. Se o usuário confirmar no pop-up...
-      if (confirmarExclusao == true && mounted) {
-        try {
-          // 5. ...exclui a conta.
-          await FirebaseAuth.instance.currentUser?.delete();
-          // E remove todas as telas da pilha para voltar ao login.
+    // 2. Pop-up de confirmação final (também é uma ação local)
+    final confirmarExclusao = await mostrarPopupConfirmacao(
+      context,
+      titulo: 'Excluir conta permanentemente?',
+      mensagem: 'ATENÇÃO: Esta ação é irreversível. Todos os seus campeonatos e dados serão perdidos para sempre.',
+      textoConfirmar: 'Sim, excluir',
+    );
+
+    if (confirmarExclusao != true) return;
+
+    // 3. Se tudo foi confirmado, AGORA usamos o assistente para a ação final
+    await executarComVerificacaoDeInternet(
+      context,
+      acao: () async {
+        // --- LÓGICA DO FIREBASE AQUI DENTRO ---
+        await FirebaseAuth.instance.currentUser?.delete();
+        
+        // Se a exclusão deu certo, o AuthPage cuidará de levar para a tela de login.
+        // Apenas precisamos garantir que todas as telas sejam fechadas.
+        if (mounted) {
           Navigator.of(context).popUntil((route) => route.isFirst);
-        } on FirebaseAuthException catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erro ao excluir conta: ${e.message}'), backgroundColor: Colors.red),
-          );
         }
-      }
-    }
+      },
+    );
   }
 
   // --- Widget Reutilizável para o Pop-up ---
