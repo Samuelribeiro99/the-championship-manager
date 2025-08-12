@@ -89,7 +89,7 @@ class _TelaNomeCampeonatoState extends State<TelaNomeCampeonato> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+            child: const Text('Ok'),
           ),
         ],
       ),
@@ -117,6 +117,7 @@ class _TelaNomeCampeonatoState extends State<TelaNomeCampeonato> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TextField(
+                    textCapitalization: TextCapitalization.sentences,
                     controller: _nomeController,
                     maxLength: 20,
                     decoration: const InputDecoration(
@@ -144,7 +145,7 @@ class _TelaNomeCampeonatoState extends State<TelaNomeCampeonato> {
             right: 20,
             bottom: isKeyboardVisible ? 20 : 60,
             child: SquareIconButton(
-              svgAsset: 'assets/icons/check.svg', // <<< SEU ÍCONE DE CONFIRMAR
+              svgAsset: 'assets/icons/check.svg',
               onPressed: _avancarParaAdicionarJogadores,
             ),
           ),

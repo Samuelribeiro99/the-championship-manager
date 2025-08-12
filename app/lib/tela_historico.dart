@@ -7,6 +7,7 @@ import 'package:app/widgets/selection_button.dart';
 import 'package:app/theme/text_styles.dart';
 import 'tela_principal_campeonato.dart';
 import 'package:app/widgets/square_icon_button.dart';
+import 'package:app/utils/connectivity_utils.dart';
 
 class TelaHistorico extends StatelessWidget {
   const TelaHistorico({super.key});
@@ -24,7 +25,7 @@ class TelaHistorico extends StatelessWidget {
     return FirebaseFirestore.instance
         .collection('campeonatos')
         .where('idCriador', isEqualTo: user.uid)
-        .orderBy('criadoEm', descending: true) // Mostra os mais recentes primeiro
+        .orderBy('criadoEm', descending: true)
         .get();
   }
 
@@ -57,7 +58,13 @@ class TelaHistorico extends StatelessWidget {
 
                   // --- ESTADO SEM DADOS ---
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Center(child: Text('Nenhum campeonato encontrado.'));
+                    return const Center(
+                      child: Text(
+                        'Nenhum campeonato foi criado ainda',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18, color: Colors.white70),
+                      ),
+                    );
                   }
 
                   // --- ESTADO DE SUCESSO (COM DADOS) ---
@@ -83,26 +90,40 @@ class TelaHistorico extends StatelessWidget {
                         child: SelectionButton(
                           text: nome,
                           svgAsset: svgAsset,
-                          onPressed: () {
-                            // Extrai os dados necessários para a próxima tela
-                            final jogadoresList = (dados['jogadores'] as List)
-                                .map((j) => j['nome'] as String)
-                                .toList();
-                            
-                            // Converte a string do modo de volta para o enum
-                            final modo = ModoCampeonato.values.firstWhere(
-                              (e) => e.toString() == dados['modo'],
-                              orElse: () => ModoCampeonato.pontosCorridosIda,
-                            );
+                          // --- A MUDANÇA ESTÁ AQUI ---
+                          onPressed: () async {
+                            await executarComVerificacaoDeInternet(
+                              context,
+                              acao: () async {
+                                // A ação é apenas navegar, pois a próxima tela
+                                // fará sua própria busca de dados.
 
-                            Navigator.push(context, MaterialPageRoute(
-                              builder: (context) => TelaPrincipalCampeonato(
-                                campeonatoId: campeonatoDoc.id, // Passa o ID
-                                nomeDoCampeonato: nome,
-                                jogadores: jogadoresList,
-                                modo: modo,
-                              ),
-                            ));
+                                // Primeiro, extrai os dados necessários
+                                final jogadoresList = (dados['jogadores'] as List)
+                                    .map((j) => j['nome'] as String)
+                                    .toList();
+                                
+                                final modo = ModoCampeonato.values.firstWhere(
+                                  (e) => e.toString() == dados['modo'],
+                                  orElse: () => ModoCampeonato.pontosCorridosIda,
+                                );
+                                
+                                // Fecha o loading que o assistente abriu
+                                if (context.mounted) Navigator.of(context).pop();
+
+                                // E então navega para a tela principal
+                                if (context.mounted) {
+                                  Navigator.push(context, MaterialPageRoute(
+                                    builder: (context) => TelaPrincipalCampeonato(
+                                      campeonatoId: campeonatoDoc.id,
+                                      nomeDoCampeonato: nome,
+                                      jogadores: jogadoresList,
+                                      modo: modo,
+                                    ),
+                                  ));
+                                }
+                              },
+                            );
                           },
                         ),
                       );

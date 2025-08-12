@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:app/widgets/background_scaffold.dart';
 import 'package:app/widgets/menu_button.dart';
 import 'package:app/theme/app_colors.dart';
+import 'package:app/utils/connectivity_utils.dart';
 
 // Importe suas telas placeholder
 import 'tela_historico.dart';
-import 'tela_estatisticas.dart';
+// import 'tela_estatisticas.dart';
 import 'tela_configuracoes.dart';
 import 'tela_sobre.dart';
 import 'tela_modo_campeonato.dart';
@@ -49,7 +50,7 @@ class TelaMenuPrincipal extends StatelessWidget {
 
               // --- LISTA DE BOTÕES ---
               MenuButton(
-                text: 'Novo Campeonato',
+                text: 'Novo campeonato',
                 svgAsset: 'assets/icons/novo_campeonato.svg', // <<< USE SEUS ÍCONES
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaModoCampeonato()));
@@ -59,19 +60,31 @@ class TelaMenuPrincipal extends StatelessWidget {
               MenuButton(
                 text: 'Histórico',
                 svgAsset: 'assets/icons/historico.svg',
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaHistorico()));
+                onPressed: () async {
+                  await executarComVerificacaoDeInternet(
+                    context,
+                    acao: () async {
+                      // A "ação" aqui é apenas a verificação de internet.
+                      // Se ela passar, a primeira coisa que fazemos é fechar o loading.
+                      if (context.mounted) Navigator.of(context).pop();
+                      
+                      // E só DEPOIS navegamos para a próxima tela.
+                      if (context.mounted) {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaHistorico()));
+                      }
+                    },
+                  );
                 },
               ),
               const SizedBox(height: 16),
-              MenuButton(
-                text: 'Estatísticas',
-                svgAsset: 'assets/icons/estatisticas.svg',
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaEstatisticas()));
-                },
-              ),
-              const SizedBox(height: 16),
+              // MenuButton(
+              //   text: 'Estatísticas',
+              //   svgAsset: 'assets/icons/estatisticas.svg',
+              //   onPressed: () {
+              //     Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaEstatisticas()));
+              //   },
+              // ),
+              // const SizedBox(height: 16),
               MenuButton(
                 text: 'Configurações',
                 svgAsset: 'assets/icons/configuracoes.svg',

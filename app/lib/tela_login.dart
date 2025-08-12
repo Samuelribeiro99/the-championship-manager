@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'tela_cadastro.dart'; // Importa a tela de cadastro para navegação
+import 'tela_cadastro.dart';
 import 'package:app/widgets/background_scaffold.dart';
 import 'package:app/theme/app_colors.dart';
 import 'package:app/theme/text_styles.dart';
+import 'package:app/utils/popup_utils.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TelaLogin extends StatefulWidget {
   const TelaLogin({super.key});
@@ -15,7 +17,8 @@ class TelaLogin extends StatefulWidget {
 class _TelaLoginState extends State<TelaLogin> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _loading = false;
+  bool _loading = false; 
+  bool _senhaObscura = true;
 
   @override
   void dispose() {
@@ -24,33 +27,63 @@ class _TelaLoginState extends State<TelaLogin> {
     super.dispose();
   }
 
+  // 2. A FUNÇÃO _login VOLTA A TER A LÓGICA DE LOADING E TRY/CATCH
   Future<void> _login() async {
-    setState(() { _loading = true; });
-
     FocusScope.of(context).unfocus();
     
+    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+      mostrarPopupAlerta(context, 'Por favor, preencha o e-mail e a senha.');
+      return;
+    }
+
+    // Ativa o loading
+    setState(() { _loading = true; });
+
     try {
+      // Verificação de internet antes de tentar o login
+      final temConexao = await _verificarConexaoFirebase();
+      if (!temConexao) {
+        mostrarPopupAlerta(context, 'Não foi possível se conectar ao nosso serviço. Verifique sua conexão com a internet.');
+        return;
+      }
+      
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      // A navegação para a tela principal será feita automaticamente
-      // pelo nosso "Gerenciador de Autenticação" (Parte 3)
+      // Se o login der certo, o AuthPage navega e esta tela é removida da árvore.
+      // O 'finally' abaixo ainda será executado, mas não causará problemas.
+
     } on FirebaseAuthException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao fazer login: ${e.message}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+      String mensagemErro = 'Ocorreu um erro ao fazer login.';
+      if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        mensagemErro = 'E-mail ou senha inválidos.';
+      } else {
+        mensagemErro = e.message ?? mensagemErro;
       }
+      if (mounted) mostrarPopupAlerta(context, mensagemErro);
     } finally {
+      // Garante que o loading seja desativado, não importa o que aconteça
       if (mounted) {
         setState(() { _loading = false; });
       }
     }
   }
+
+  // Adicionamos a função de verificar conexão aqui, pois não estamos mais usando o assistente
+  Future<bool> _verificarConexaoFirebase() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('connectivityCheck')
+          .doc('check')
+          .get(const GetOptions(source: Source.server))
+          .timeout(const Duration(seconds: 5));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
 
   void _irParaTelaCadastro() {
     Navigator.of(context).push(
@@ -60,13 +93,9 @@ class _TelaLoginState extends State<TelaLogin> {
 
   @override
   Widget build(BuildContext context) {
-    // Agora não passamos mais uma AppBar para o nosso layout de fundo
     return BackgroundScaffold(
       body: Stack(
         children: [
-          // --- ITEM 1: O CONTEÚDO PRINCIPAL (CAMPOS E BOTÕES) ---
-          // Colocamos o conteúdo principal dentro de um SafeArea para evitar
-          // que ele fique atrás da barra de status do celular.
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -82,19 +111,34 @@ class _TelaLoginState extends State<TelaLogin> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(labelText: 'Senha'),
-                    obscureText: true,
+                    obscureText: _senhaObscura, // Usa a variável de estado
+                    decoration: InputDecoration(
+                      labelText: 'Senha',
+                      // Adiciona o ícone de olho aqui
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _senhaObscura ? Icons.visibility_off : Icons.visibility,
+                        ),
+                                             onPressed: () {
+                          setState(() {
+                            _senhaObscura = !_senhaObscura;
+                          });
+                        },
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 32),
                   Center(
                     child: OutlinedButton(
-                      onPressed: _loading ? null : _login,
+                      // 3. O BOTÃO AGORA USA A VARIÁVEL _loading
+                      onPressed: _loading ? null : _login, // Desabilita o botão durante o loading
                       style: OutlinedButton.styleFrom().copyWith(
-                        minimumSize: WidgetStateProperty.all(const Size(150, 50)),
+                        minimumSize: MaterialStateProperty.all(const Size(150, 50)),
                       ),
+                      // Mostra o indicador de progresso ou o texto
                       child: _loading
-                          ? CircularProgressIndicator(color: AppColors.borderYellow) 
-                          : const Text('Entrar',),
+                          ? CircularProgressIndicator(color: AppColors.borderYellow)
+                          : const Text('Entrar'),
                     ),
                   ),
                   const SizedBox(height: 100),
@@ -124,8 +168,6 @@ class _TelaLoginState extends State<TelaLogin> {
             ),
           ),
           Align(
-            // Alignment(x, y): x=-1.0 (esquerda), x=1.0 (direita)
-            //                  y=-1.0 (topo),    y=1.0 (fundo)
             alignment: const Alignment(-0.0, -0.85), // Centralizado horizontalmente, um pouco abaixo do topo
             child: const Text(
               'Login',

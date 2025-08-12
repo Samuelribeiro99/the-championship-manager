@@ -5,6 +5,9 @@ import 'package:app/widgets/square_icon_button.dart';
 import 'package:app/widgets/password_validation_fields.dart';
 import 'package:app/utils/validators.dart';
 import 'package:app/theme/text_styles.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:app/theme/app_colors.dart';
+import 'package:app/utils/popup_utils.dart';
 
 class TelaCadastro extends StatefulWidget {
   const TelaCadastro({super.key});
@@ -30,38 +33,50 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
   // --- Lógica de Cadastro ---
   Future<void> _cadastrar() async {
-    // Valida email
+    FocusScope.of(context).unfocus();
+    
+    // Validações locais (continuam as mesmas)
     final String? erroEmail = Validators.validateEmail(_emailController.text.trim());
     if (erroEmail != null) {
-      _exibirAlerta(erroEmail);
-      return; // Para a execução se o e-mail for inválido
-    }
-    // Valida senha
-    if (_passwordController.text != _confirmPasswordController.text) {
-      _exibirAlerta('As senhas não conferem.');
+      mostrarPopupAlerta(context, erroEmail);
       return;
     }
-    // --- Fim da validação ---
+    if (_passwordController.text != _confirmPasswordController.text) {
+      mostrarPopupAlerta(context, 'As senhas não conferem.');
+      return;
+    }
 
     setState(() { _loading = true; });
 
     try {
+      final temConexao = await _verificarConexaoFirebase();
+      if (!temConexao) {
+        mostrarPopupAlerta(context, 'Não foi possível se conectar ao nosso serviço. Verifique sua conexão com a internet.');
+        return; // O finally cuidará de desativar o loading
+      }
+      
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      // Se o widget ainda estiver montado, faz a navegação
+      // --- ADICIONE ESTA NAVEGAÇÃO DE VOLTA ---
+      // Se o cadastro deu certo, o AuthPage já trocou a tela por baixo.
+      // Esta linha remove as telas de login/cadastro da pilha para revelar a tela principal.
       if (mounted) {
-        // Navega para a AuthPage (que vai mostrar a tela principal)
-        // e remove todas as telas anteriores (login, cadastro) do histórico.
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
 
     } on FirebaseAuthException catch (e) {
-      if (mounted) {
-        _exibirAlerta('Erro ao cadastrar: ${e.message}');
+      String mensagemErro = 'Ocorreu um erro ao cadastrar.';
+      if (e.code == 'weak-password') {
+        mensagemErro = 'A senha fornecida é muito fraca.';
+      } else if (e.code == 'email-already-in-use') {
+        mensagemErro = 'Este e-mail já está em uso por outra conta.';
+      } else {
+        mensagemErro = e.message ?? mensagemErro;
       }
+      if (mounted) mostrarPopupAlerta(context, mensagemErro);
     } finally {
       if (mounted) {
         setState(() { _loading = false; });
@@ -69,23 +84,27 @@ class _TelaCadastroState extends State<TelaCadastro> {
     }
   }
 
-  void _exibirAlerta(String message, {bool success = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: success ? Colors.green : Colors.red,
-      ),
-    );
+  // Função local para verificar a conexão, já que não estamos usando o assistente
+  Future<bool> _verificarConexaoFirebase() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('connectivityCheck')
+          .doc('check')
+          .get(const GetOptions(source: Source.server))
+          .timeout(const Duration(seconds: 5));
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
-
   // --- Construção da Interface (UI) ---
 
   @override
   Widget build(BuildContext context) {
-        final bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
 
     // A estrutura principal agora é um Stack, dentro do nosso BackgroundScaffold
     return BackgroundScaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           // --- ITEM 1: TÍTULO "CADASTRE-SE" POSICIONADO LIVREMENTE NO TOPO ---
@@ -106,7 +125,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Espaço para não ficar atrás do título flutuante
-                    const SizedBox(height: 150),
+                    const SizedBox(height: 130),
 
                     TextField(
                       controller: _emailController,
@@ -118,7 +137,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                       passwordController: _passwordController,
                       confirmPasswordController: _confirmPasswordController,
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 12),
                     
                     // Converti seu ElevatedButton para um OutlinedButton para manter o estilo
                     Center(
@@ -128,7 +147,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                           minimumSize: WidgetStateProperty.all(const Size(200, 50)),
                         ),
                         child: _loading 
-                            ? const CircularProgressIndicator(color: Colors.white) 
+                            ? CircularProgressIndicator(color: AppColors.borderYellow) 
                             : const Text('Cadastrar'),
                       ),
                     ),
@@ -142,7 +161,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
           // --- ITEM 3: BOTÃO DE VOLTAR POSICIONADO NO CANTO INFERIOR ESQUERDO ---
           Positioned(
             left: 20,
-            bottom: isKeyboardVisible ? 8 : 60,
+            bottom: 60,
             child: SquareIconButton(
               svgAsset: 'assets/icons/voltar.svg', // <<< Apenas muda o ícone
               onPressed: () => Navigator.of(context).pop(), // <<< E a ação
