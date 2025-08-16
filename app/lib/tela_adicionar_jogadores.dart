@@ -3,6 +3,7 @@ import 'package:app/widgets/background_scaffold.dart';
 import 'package:app/widgets/square_icon_button.dart';
 import 'package:app/theme/text_styles.dart';
 import 'tela_principal_campeonato.dart';
+import 'tela_jogadores_existentes.dart';
 import 'package:app/widgets/selection_button.dart';
 import 'package:app/models/modo_campeonato.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -112,6 +113,24 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
     }
     return partidasGeradas;
   }
+
+  Future<void> _abrirListaJogadoresExistentes() async {
+      // Navega para a nova tela e ESPERA um resultado (a lista de jogadores)
+      final List<String>? jogadoresSelecionados = await Navigator.push<List<String>>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TelaJogadoresExistentes(jogadoresJaAdicionados: _jogadores),
+        ),
+      );
+
+      // Se o usuário selecionou jogadores e voltou pelo botão "check"...
+      if (jogadoresSelecionados != null && jogadoresSelecionados.isNotEmpty) {
+        setState(() {
+          // Adiciona os jogadores selecionados à lista atual
+          _jogadores.addAll(jogadoresSelecionados);
+        });
+      }
+    }
 
   Future<void> _avancar() async {
     FocusScope.of(context).unfocus();
@@ -249,6 +268,20 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
             child: SquareIconButton(
               svgAsset: 'assets/icons/voltar.svg',
               onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+          // NOVO BOTÃO NO MEIO
+          Positioned(
+            // Alinha o botão no centro horizontal da tela
+            left: 0,
+            right: 0,
+            bottom: 60,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: SquareIconButton(
+                svgAsset: 'assets/icons/list.svg',
+                onPressed: _abrirListaJogadoresExistentes,
+              ),
             ),
           ),
           Positioned(

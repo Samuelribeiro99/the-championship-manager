@@ -47,13 +47,13 @@ class TelaModoCampeonato extends StatelessWidget {
                     iconShape: BoxShape.rectangle,
                     onPressed: () => _selecionarModo(context, ModoCampeonato.pontosCorridosIda),
                   ),
-                  const SizedBox(height: 80),
-                  MenuButton(
-                    text: 'Pontos corridos\n+ final',
-                    svgAsset: 'assets/icons/pontos_final.svg',
-                    iconShape: BoxShape.rectangle,
-                    onPressed: () => _selecionarModo(context, ModoCampeonato.pontosCorridosIdaComFinal),
-                  ),
+                  // const SizedBox(height: 80),
+                  // MenuButton(
+                  //   text: 'Pontos corridos\n+ final',
+                  //   svgAsset: 'assets/icons/pontos_final.svg',
+                  //   iconShape: BoxShape.rectangle,
+                  //   onPressed: () => _selecionarModo(context, ModoCampeonato.pontosCorridosIdaComFinal),
+                  // ),
                   // const SizedBox(height: 80),
                   // MenuButton(
                   //   text: 'Torneio',
