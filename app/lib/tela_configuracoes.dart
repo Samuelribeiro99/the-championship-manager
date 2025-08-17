@@ -7,6 +7,7 @@ import 'tela_reautenticacao.dart';
 import 'package:app/theme/text_styles.dart';
 import 'package:app/utils/connectivity_utils.dart';
 import 'package:app/utils/popup_utils.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Importe as telas que vamos usar
 import 'tela_trocar_senha.dart';
@@ -37,34 +38,58 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
   }
 
   Future<void> _excluirConta() async {
-    // 1. Reautenticação
+    // 1. Reautenticação (continua o mesmo)
     final bool? reautenticado = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (context) => const TelaReautenticacao()),
     );
-
-    // Se o usuário não se reautenticou (voltou ou falhou), para a execução.
     if (reautenticado != true) return;
 
-    // 2. Pop-up de confirmação final (também é uma ação local)
+    // 2. Pop-up de confirmação final (continua o mesmo)
     final confirmarExclusao = await mostrarPopupConfirmacao(
       context,
       titulo: 'Excluir conta permanentemente?',
       mensagem: 'ATENÇÃO: Esta ação é irreversível. Todos os seus campeonatos e dados serão perdidos para sempre.',
       textoConfirmar: 'Sim, excluir',
     );
-
     if (confirmarExclusao != true) return;
 
-    // 3. Se tudo foi confirmado, AGORA usamos o assistente para a ação final
+    // 3. Se tudo foi confirmado, usamos o assistente para a ação final
     await executarComVerificacaoDeInternet(
       context,
       acao: () async {
-        // --- LÓGICA DO FIREBASE AQUI DENTRO ---
-        await FirebaseAuth.instance.currentUser?.delete();
+        // --- LÓGICA COMPLETA DE EXPURGO DE DADOS ---
+        final user = FirebaseAuth.instance.currentUser;
+        if (user == null) throw Exception('Usuário não encontrado para exclusão.');
+
+        final firestore = FirebaseFirestore.instance;
+        WriteBatch batch = firestore.batch();
+
+        // A. Encontra todos os campeonatos criados pelo usuário.
+        final campeonatosQuery = await firestore
+            .collection('campeonatos')
+            .where('idCriador', isEqualTo: user.uid)
+            .get();
+
+        // B. Para cada campeonato, busca e deleta a subcoleção de partidas.
+        for (final campeonatoDoc in campeonatosQuery.docs) {
+          final partidasQuery = await campeonatoDoc.reference.collection('partidas').get();
+          for (final partidaDoc in partidasQuery.docs) {
+            // Adiciona a exclusão de cada partida ao batch
+            batch.delete(partidaDoc.reference);
+          }
+          // Adiciona a exclusão do próprio campeonato ao batch
+          batch.delete(campeonatoDoc.reference);
+        }
         
-        // Se a exclusão deu certo, o AuthPage cuidará de levar para a tela de login.
-        // Apenas precisamos garantir que todas as telas sejam fechadas.
+        // C. Executa a exclusão de todos os dados do Firestore de uma vez
+        await batch.commit();
+
+        // D. APENAS DEPOIS de deletar os dados, deleta a conta de autenticação.
+        await user.delete();
+        
+        // E. Navega o usuário para fora do aplicativo.
+        // O AuthPage cuidará de levar para a tela de login.
         if (mounted) {
           Navigator.of(context).popUntil((route) => route.isFirst);
         }

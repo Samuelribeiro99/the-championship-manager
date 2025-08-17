@@ -78,7 +78,11 @@ class _TelaJogadoresExistentesState extends State<TelaJogadoresExistentes> {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('Nenhum jogador encontrado em campeonatos anteriores.'));
+                    return const Center(child: Text(
+                      'Nenhum jogador encontrado em campeonatos anteriores.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 18, color: Colors.white70),
+                    ));
                   }
 
                   final todosJogadores = snapshot.data!;
@@ -88,7 +92,11 @@ class _TelaJogadoresExistentesState extends State<TelaJogadoresExistentes> {
                       .toList();
 
                   if (jogadoresParaExibir.isEmpty) {
-                    return const Center(child: Text('Todos os jogadores existentes já foram adicionados.'));
+                    return const Center(child: Text(
+                      'Todos os jogadores existentes já foram adicionados.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 18, color: Colors.white70),
+                    ));
                   }
 
                   return ListView.builder(
