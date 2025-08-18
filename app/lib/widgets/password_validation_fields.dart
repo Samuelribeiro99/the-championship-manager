@@ -124,21 +124,26 @@ class _PasswordValidationFieldsState extends State<PasswordValidationFields> {
   }
 
   Widget _buildLinhaRequisito(String texto, bool atendido) {
-    // ... (código do _buildLinhaRequisito de tela_cadastro.dart)
-        return Padding(
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.0),
       child: Row(
         children: [
-          Icon(
-            atendido ? Icons.check_circle : Icons.remove_circle_outline,
-            color: atendido ? Colors.green : Colors.grey,
-            size: 18,
+          // --- AJUSTE AQUI: Trocamos SvgPicture.asset por Image.asset ---
+          Image.asset(
+            // A lógica para escolher o arquivo continua a mesma
+            atendido
+                ? 'assets/icons/vai_colorido.png' // <<< Use seu arquivo .png aqui
+                : 'assets/icons/cartao_amarelo.png', // <<< Use seu arquivo .png aqui
+
+            width: 20, // Define a largura e altura da imagem
+            height: 20,
           ),
           const SizedBox(width: 8),
           Text(
             texto,
             style: TextStyle(
-              color: atendido ? Colors.green : Colors.grey,
+              // A cor do texto pode continuar mudando dinamicamente
+              color: atendido ? Colors.green : Colors.amber,
             ),
           ),
         ],
