@@ -21,6 +21,8 @@ class _PasswordValidationFieldsState extends State<PasswordValidationFields> {
   bool _temNumero = false;
   bool _temCaractereEspecial = false;
   bool _senhasConferem = true;
+  bool _novaSenhaObscura = true;
+  bool _confirmarSenhaObscura = true;
 
   @override
   void initState() {
@@ -61,8 +63,21 @@ class _PasswordValidationFieldsState extends State<PasswordValidationFields> {
       children: [
         TextField(
           controller: widget.passwordController,
-          decoration: const InputDecoration(labelText: 'Nova Senha'),
-          obscureText: true,
+          obscureText: _novaSenhaObscura, // Usa a variável de estado
+          decoration: InputDecoration(
+            labelText: 'Senha', // Ajustado para ser mais genérico
+            // Adiciona o ícone de olho aqui
+            suffixIcon: IconButton(
+              icon: Icon(
+                _novaSenhaObscura ? Icons.visibility_off : Icons.visibility,
+              ),
+              onPressed: () {
+                setState(() {
+                  _novaSenhaObscura = !_novaSenhaObscura;
+                });
+              },
+            ),
+          ),
         ),
         const SizedBox(height: 16),
         if (widget.passwordController.text.isNotEmpty && !todosRequisitosAtendidos)
@@ -70,8 +85,21 @@ class _PasswordValidationFieldsState extends State<PasswordValidationFields> {
         
         TextField(
           controller: widget.confirmPasswordController,
-          decoration: const InputDecoration(labelText: 'Confirmar Nova Senha'),
-          obscureText: true,
+          obscureText: _confirmarSenhaObscura, // Usa a variável de estado
+          decoration: InputDecoration(
+            labelText: 'Confirmar senha',
+            // Adiciona o ícone de olho aqui também
+            suffixIcon: IconButton(
+              icon: Icon(
+                _confirmarSenhaObscura ? Icons.visibility_off : Icons.visibility,
+              ),
+              onPressed: () {
+                setState(() {
+                  _confirmarSenhaObscura = !_confirmarSenhaObscura;
+                });
+              },
+            ),
+          ),
         ),
         const SizedBox(height: 8),
         if (widget.confirmPasswordController.text.isNotEmpty)
@@ -96,21 +124,26 @@ class _PasswordValidationFieldsState extends State<PasswordValidationFields> {
   }
 
   Widget _buildLinhaRequisito(String texto, bool atendido) {
-    // ... (código do _buildLinhaRequisito de tela_cadastro.dart)
-        return Padding(
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.0),
       child: Row(
         children: [
-          Icon(
-            atendido ? Icons.check_circle : Icons.remove_circle_outline,
-            color: atendido ? Colors.green : Colors.grey,
-            size: 18,
+          // --- AJUSTE AQUI: Trocamos SvgPicture.asset por Image.asset ---
+          Image.asset(
+            // A lógica para escolher o arquivo continua a mesma
+            atendido
+                ? 'assets/icons/vai_colorido.png' // <<< Use seu arquivo .png aqui
+                : 'assets/icons/cartao_amarelo.png', // <<< Use seu arquivo .png aqui
+
+            width: 20, // Define a largura e altura da imagem
+            height: 20,
           ),
           const SizedBox(width: 8),
           Text(
             texto,
             style: TextStyle(
-              color: atendido ? Colors.green : Colors.grey,
+              // A cor do texto pode continuar mudando dinamicamente
+              color: atendido ? Colors.green : Colors.amber,
             ),
           ),
         ],

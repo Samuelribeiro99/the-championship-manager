@@ -5,6 +5,9 @@ import 'package:app/widgets/selection_button.dart';
 import 'package:app/widgets/square_icon_button.dart';
 import 'tela_reautenticacao.dart';
 import 'package:app/theme/text_styles.dart';
+import 'package:app/utils/connectivity_utils.dart';
+import 'package:app/utils/popup_utils.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Importe as telas que vamos usar
 import 'tela_trocar_senha.dart';
@@ -35,35 +38,63 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
   }
 
   Future<void> _excluirConta() async {
-    // 1. Navega para a tela de reautenticação e espera um resultado
+    // 1. Reautenticação (continua o mesmo)
     final bool? reautenticado = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (context) => const TelaReautenticacao()),
     );
+    if (reautenticado != true) return;
 
-    // 2. Se a reautenticação foi bem-sucedida (retornou 'true')...
-    if (reautenticado == true && mounted) {
-      // 3. ...mostra o pop-up final de confirmação.
-      final confirmarExclusao = await _mostrarPopupConfirmacao(
-        titulo: 'Excluir conta permanentemente?',
-        mensagem: 'ATENÇÃO: Esta ação é irreversível. Todos os seus campeonatos e dados serão perdidos para sempre.',
-        textoConfirmar: 'Sim, excluir',
-      );
+    // 2. Pop-up de confirmação final (continua o mesmo)
+    final confirmarExclusao = await mostrarPopupConfirmacao(
+      context,
+      titulo: 'Excluir conta permanentemente?',
+      mensagem: 'ATENÇÃO: Esta ação é irreversível. Todos os seus campeonatos e dados serão perdidos para sempre.',
+      textoConfirmar: 'Sim, excluir',
+    );
+    if (confirmarExclusao != true) return;
 
-      // 4. Se o usuário confirmar no pop-up...
-      if (confirmarExclusao == true && mounted) {
-        try {
-          // 5. ...exclui a conta.
-          await FirebaseAuth.instance.currentUser?.delete();
-          // E remove todas as telas da pilha para voltar ao login.
-          Navigator.of(context).popUntil((route) => route.isFirst);
-        } on FirebaseAuthException catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erro ao excluir conta: ${e.message}'), backgroundColor: Colors.red),
-          );
+    // 3. Se tudo foi confirmado, usamos o assistente para a ação final
+    await executarComVerificacaoDeInternet(
+      context,
+      acao: () async {
+        // --- LÓGICA COMPLETA DE EXPURGO DE DADOS ---
+        final user = FirebaseAuth.instance.currentUser;
+        if (user == null) throw Exception('Usuário não encontrado para exclusão.');
+
+        final firestore = FirebaseFirestore.instance;
+        WriteBatch batch = firestore.batch();
+
+        // A. Encontra todos os campeonatos criados pelo usuário.
+        final campeonatosQuery = await firestore
+            .collection('campeonatos')
+            .where('idCriador', isEqualTo: user.uid)
+            .get();
+
+        // B. Para cada campeonato, busca e deleta a subcoleção de partidas.
+        for (final campeonatoDoc in campeonatosQuery.docs) {
+          final partidasQuery = await campeonatoDoc.reference.collection('partidas').get();
+          for (final partidaDoc in partidasQuery.docs) {
+            // Adiciona a exclusão de cada partida ao batch
+            batch.delete(partidaDoc.reference);
+          }
+          // Adiciona a exclusão do próprio campeonato ao batch
+          batch.delete(campeonatoDoc.reference);
         }
-      }
-    }
+        
+        // C. Executa a exclusão de todos os dados do Firestore de uma vez
+        await batch.commit();
+
+        // D. APENAS DEPOIS de deletar os dados, deleta a conta de autenticação.
+        await user.delete();
+        
+        // E. Navega o usuário para fora do aplicativo.
+        // O AuthPage cuidará de levar para a tela de login.
+        if (mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      },
+    );
   }
 
   // --- Widget Reutilizável para o Pop-up ---
@@ -125,7 +156,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                   ),
                   const SizedBox(height: 16),
                   SelectionButton(
-                    text: 'Trocar email',
+                    text: 'Trocar e-mail',
                     svgAsset: 'assets/icons/email.svg',
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaTrocarEmail()));

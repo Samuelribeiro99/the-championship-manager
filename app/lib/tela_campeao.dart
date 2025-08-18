@@ -45,8 +45,8 @@ class TelaCampeao extends StatelessWidget {
                     width: 250,
                     // Lógica para mostrar SVG ou PNG
                     child: trofeuUrl.endsWith('.svg')
-                      ? SvgPicture.asset(trofeuUrl)
-                      : Image.asset(trofeuUrl),
+                      ? SvgPicture.asset(trofeuUrl, fit: BoxFit.cover)
+                      : Image.asset(trofeuUrl, fit: BoxFit.cover),
                   ),
                   const SizedBox(height: 40),
 

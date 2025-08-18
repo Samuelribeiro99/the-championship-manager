@@ -3,11 +3,14 @@ import 'package:app/widgets/background_scaffold.dart';
 import 'package:app/widgets/square_icon_button.dart';
 import 'package:app/theme/text_styles.dart';
 import 'tela_principal_campeonato.dart';
+import 'tela_jogadores_existentes.dart';
 import 'package:app/widgets/selection_button.dart';
 import 'package:app/models/modo_campeonato.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/models/campeonato_models.dart';
+import 'package:app/utils/connectivity_utils.dart';
+import 'package:app/utils/popup_utils.dart';
 
 class TelaAdicionarJogadores extends StatefulWidget {
   final String nomeDoCampeonato;
@@ -36,15 +39,19 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
   // --- LÓGICA DA TELA ---
 
   void _adicionarJogador() {
+    if (_jogadores.length >= 32) {
+      mostrarPopupAlerta(context, 'O número máximo de 32 jogadores já foi atingido.');
+      return;
+    }
     final nome = _nomeJogadorController.text.trim();
     
     if (nome.isEmpty) {
-      _mostrarPopupAlerta('Por favor, insira o nome do jogador.');
+      mostrarPopupAlerta(context, 'Por favor, insira o nome do jogador.');
       return;
     }
 
     if (_jogadores.any((jogador) => jogador.toLowerCase() == nome.toLowerCase())) {
-      _mostrarPopupAlerta('Este jogador já foi adicionado.');
+      mostrarPopupAlerta(context, 'Este jogador já foi adicionado.');
       return;
     }
 
@@ -55,7 +62,8 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
   }
 
   void _removerJogador(int index) async {
-    final confirmar = await _mostrarPopupConfirmacao(
+    final confirmar = await mostrarPopupConfirmacao(
+      context,
       titulo: 'Remover Jogador',
       mensagem: 'Tem certeza que deseja remover "${_jogadores[index]}"?',
     );
@@ -106,108 +114,94 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
     return partidasGeradas;
   }
 
+  Future<void> _abrirListaJogadoresExistentes() async {
+      // Navega para a nova tela e ESPERA um resultado (a lista de jogadores)
+      final List<String>? jogadoresSelecionados = await Navigator.push<List<String>>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TelaJogadoresExistentes(jogadoresJaAdicionados: _jogadores),
+        ),
+      );
+
+      // Se o usuário selecionou jogadores e voltou pelo botão "check"...
+      if (jogadoresSelecionados != null && jogadoresSelecionados.isNotEmpty) {
+        setState(() {
+          // Adiciona os jogadores selecionados à lista atual
+          _jogadores.addAll(jogadoresSelecionados);
+        });
+      }
+    }
+
   Future<void> _avancar() async {
     FocusScope.of(context).unfocus();
 
     // Validações de número de jogadores
     if (_jogadores.length < 4) {
-      _mostrarPopupAlerta('É necessário adicionar pelo menos 4 jogadores.');
-      return;
-    }
-    if (_jogadores.length > 32) {
-      _mostrarPopupAlerta('O número máximo de jogadores é 32.');
+      mostrarPopupAlerta(context, 'É necessário adicionar pelo menos 4 jogadores.');
       return;
     }
 
-    // --- LÓGICA DE SALVAR NO FIREBASE ---
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
+    // Chama nosso "assistente" para fazer todo o trabalho de rede
+    await executarComVerificacaoDeInternet(
+      context,
+      acao: () async {
+        // --- A LÓGICA DO FIREBASE FICA AQUI DENTRO ---
+        final user = FirebaseAuth.instance.currentUser;
+        if (user == null) throw Exception('Usuário não está logado.');
 
-      // 1. Cria o documento principal do campeonato no Firestore
-      DocumentReference campeonatoRef = await FirebaseFirestore.instance.collection('campeonatos').add({
-        'nome': widget.nomeDoCampeonato,
-        'nome_lowercase': widget.nomeDoCampeonato.toLowerCase(),
-        'idCriador': user.uid,
-        'status': 'ativo',
-        'criadoEm': FieldValue.serverTimestamp(),
-        'modo': widget.modo.toString(),
-        'jogadores': _jogadores.map((nome) => {'nome': nome}).toList(),
-      });
+        final firestore = FirebaseFirestore.instance;
 
-      // 2. Lógica para gerar e salvar as partidas na subcoleção
-      List<Partida> partidasGeradas = _gerarPartidasPorRodada(_jogadores);
-
-      WriteBatch batch = FirebaseFirestore.instance.batch();
-      for (var partida in partidasGeradas) {
-        DocumentReference partidaRef = campeonatoRef.collection('partidas').doc();
-        batch.set(partidaRef, {
-          'rodada': partida.rodada, // <<< SALVA O NÚMERO DA RODADA
-          'jogador1': partida.jogador1,
-          'jogador2': partida.jogador2,
-          'placar1': null,
-          'placar2': null,
-          'finalizada': false,
+        // Cria o documento principal do campeonato
+        DocumentReference campeonatoRef = await firestore.collection('campeonatos').add({
+          'nome': widget.nomeDoCampeonato,
+          'nome_lowercase': widget.nomeDoCampeonato.toLowerCase(),
+          'idCriador': user.uid,
+          'status': 'ativo',
+          'criadoEm': FieldValue.serverTimestamp(),
+          'modo': widget.modo.toString(),
+          'jogadores': _jogadores.map((nome) => {'nome': nome}).toList(),
+          // Inicia a classificação aqui para evitar o bug da primeira partida
+          'classificacao': _jogadores.map((nome) => {
+            'nome': nome, 'pontos': 0, 'jogos': 0, 'vitorias': 0, 'empates': 0,
+            'derrotas': 0, 'golsPro': 0, 'golsContra': 0, 'posicaoSorteio': null,
+          }).toList(),
         });
-      }
-      await batch.commit();
 
-      // 3. Navega para a tela principal, AGORA PASSANDO O ID
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => TelaPrincipalCampeonato(
-              campeonatoId: campeonatoRef.id,
-              nomeDoCampeonato: widget.nomeDoCampeonato,
-              jogadores: _jogadores,
-              modo: widget.modo,
+        // 2. Lógica para gerar e salvar as partidas na subcoleção
+        List<Partida> partidasGeradas = _gerarPartidasPorRodada(_jogadores);
+        WriteBatch batch = firestore.batch();
+        for (var partida in partidasGeradas) {
+          DocumentReference partidaRef = campeonatoRef.collection('partidas').doc();
+          batch.set(partidaRef, {
+            'rodada': partida.rodada,
+            'jogador1': partida.jogador1,
+            'jogador2': partida.jogador2,
+            'placar1': null,
+            'placar2': null,
+            'finalizada': false,
+          });
+        }
+        await batch.commit();
+
+        // 3. Navega para a tela principal, AGORA PASSANDO O ID
+        if (mounted) {
+          // Escondemos o loading que o 'executar' mostrou
+          Navigator.of(context).pop(); 
+          // E então navegamos
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TelaPrincipalCampeonato(
+                campeonatoId: campeonatoRef.id,
+                nomeDoCampeonato: widget.nomeDoCampeonato,
+                jogadores: _jogadores,
+                modo: widget.modo,
+              ),
             ),
-          ),
-          (route) => route.isFirst, // <<< A condição para parar de remover
-        );
-      }
-
-    } catch (e) {
-      _mostrarPopupAlerta('Ocorreu um erro ao criar o campeonato: $e');
-    }
-  }
-
-  // --- WIDGETS AUXILIARES ---
-
-  Future<void> _mostrarPopupAlerta(String mensagem) {
-    return showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Atenção'),
-        content: Text(mensagem),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<bool?> _mostrarPopupConfirmacao({required String titulo, required String mensagem}) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(titulo),
-        content: Text(mensagem),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Confirmar'),
-          ),
-        ],
-      ),
+            (route) => route.isFirst,
+          );
+        }
+      },
     );
   }
 
@@ -230,10 +224,11 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
                   children: [
                     Expanded(
                       child: TextField(
+                        textCapitalization: TextCapitalization.sentences,
                         controller: _nomeJogadorController,
                         maxLength: 25, // Limite para o nome do jogador
                         decoration: const InputDecoration(
-                          labelText: 'Nome do Jogador',
+                          labelText: 'Nome do jogador',
                           counterText: "", // Esconde o contador
                         ),
                       ),
@@ -255,7 +250,7 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: SelectionButton(
-                          text: jogador, // O nome do jogador
+                          text: jogador,
                           svgAsset: 'assets/icons/lixeira.svg',
                           onPressed: () => _removerJogador(index),
                         ),
@@ -273,6 +268,20 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
             child: SquareIconButton(
               svgAsset: 'assets/icons/voltar.svg',
               onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+          // NOVO BOTÃO NO MEIO
+          Positioned(
+            // Alinha o botão no centro horizontal da tela
+            left: 0,
+            right: 0,
+            bottom: 60,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: SquareIconButton(
+                svgAsset: 'assets/icons/list.svg',
+                onPressed: _abrirListaJogadoresExistentes,
+              ),
             ),
           ),
           Positioned(
