@@ -66,7 +66,7 @@ class _TelaJogadoresExistentesState extends State<TelaJogadoresExistentes> {
         children: [
           Align(
             alignment: const Alignment(0.0, -0.85),
-            child: Text('Jogadores Existentes', style: AppTextStyles.screenTitle),
+            child: Text('Participantes existentes', style: AppTextStyles.screenTitle),
           ),
           SafeArea(
             child: Padding(
@@ -79,7 +79,7 @@ class _TelaJogadoresExistentesState extends State<TelaJogadoresExistentes> {
                   }
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return const Center(child: Text(
-                      'Nenhum jogador encontrado em campeonatos anteriores.',
+                      'Nenhum participante encontrado em campeonatos anteriores.',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 18, color: Colors.white70),
                     ));

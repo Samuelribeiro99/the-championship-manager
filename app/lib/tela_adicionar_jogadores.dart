@@ -46,12 +46,12 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
     final nome = _nomeJogadorController.text.trim();
     
     if (nome.isEmpty) {
-      mostrarPopupAlerta(context, 'Por favor, insira o nome do jogador.');
+      mostrarPopupAlerta(context, 'Por favor, insira o nome do participante.');
       return;
     }
 
     if (_jogadores.any((jogador) => jogador.toLowerCase() == nome.toLowerCase())) {
-      mostrarPopupAlerta(context, 'Este jogador já foi adicionado.');
+      mostrarPopupAlerta(context, 'Este participante já foi adicionado.');
       return;
     }
 
@@ -64,7 +64,7 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
   void _removerJogador(int index) async {
     final confirmar = await mostrarPopupConfirmacao(
       context,
-      titulo: 'Remover Jogador',
+      titulo: 'Remover participante',
       mensagem: 'Tem certeza que deseja remover "${_jogadores[index]}"?',
     );
     if (confirmar == true) {
@@ -213,7 +213,7 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
         children: [
           Align(
             alignment: const Alignment(0.0, -0.85),
-            child: Text('Adicionar jogadores', style: AppTextStyles.screenTitle),
+            child: Text('Adicionar participantes', style: AppTextStyles.screenTitle),
           ),
           
           Padding(
@@ -228,7 +228,7 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
                         controller: _nomeJogadorController,
                         maxLength: 25, // Limite para o nome do jogador
                         decoration: const InputDecoration(
-                          labelText: 'Nome do jogador',
+                          labelText: 'Nome do participante',
                           counterText: "", // Esconde o contador
                         ),
                       ),

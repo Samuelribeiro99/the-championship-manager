@@ -169,7 +169,20 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
   void _mostrarInfoTabela() {
     showDialog(context: context, builder: (context) => AlertDialog(
       title: const Text('Legenda da Tabela'),
-      content: const Text('P: Pontos\nJ: Jogos\nV: Vitórias\nE: Empates\nD: Derrotas\nSG: Saldo de gols\nGP: Gols pró\nGC: Gols contra\nCritério de desempate: P > V > SG > GP > Confronto direto > Sorteio\nO modo de pontos corridos é com partidas somente ida\nÉ possível arrastar a tabela para todos os lados. Experimente!'),
+      content: const Text(
+        'P: Pontos\n'
+        'J: Jogos\n'
+        'V: Vitórias\n'
+        'E: Empates\n'
+        'D: Derrotas\n'
+        'SG: Saldo de gols\n'
+        'GP: Gols pró\n'
+        'GC: Gols contra\n\n'
+        'Critério de desempate: P > V > SG > GP > Confronto direto > Sorteio\n\n'
+        'Outras informações:\n'
+        'O modo de pontos corridos é com partidas somente ida.\n'
+        'É possível arrastar a tabela para todos os lados. Experimente!'
+        ),
       actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Ok'))],
     ));
   }
@@ -325,7 +338,7 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                                         ),
                                         child: const Padding(
                                           padding: EdgeInsets.symmetric(horizontal: 8.0),
-                                          child: Text('Jogador', style: TextStyle(fontWeight: FontWeight.bold)),
+                                          child: Text('Participante', style: TextStyle(fontWeight: FontWeight.bold)),
                                         ),
                                       ),
                                     ),
