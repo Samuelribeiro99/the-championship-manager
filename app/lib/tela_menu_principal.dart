@@ -6,7 +6,7 @@ import 'package:app/utils/connectivity_utils.dart';
 
 // Importe suas telas placeholder
 import 'tela_historico.dart';
-// import 'tela_estatisticas.dart';
+import 'tela_estatisticas.dart';
 import 'tela_configuracoes.dart';
 import 'tela_sobre.dart';
 import 'tela_modo_campeonato.dart';
@@ -77,14 +77,14 @@ class TelaMenuPrincipal extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 16),
-              // MenuButton(
-              //   text: 'Estatísticas',
-              //   svgAsset: 'assets/icons/estatisticas.svg',
-              //   onPressed: () {
-              //     Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaEstatisticas()));
-              //   },
-              // ),
-              // const SizedBox(height: 16),
+              MenuButton(
+                text: 'Estatísticas',
+                svgAsset: 'assets/icons/estatisticas.svg',
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaEstatisticas()));
+                },
+              ),
+              const SizedBox(height: 16),
               MenuButton(
                 text: 'Configurações',
                 svgAsset: 'assets/icons/configuracoes.svg',
