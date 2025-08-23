@@ -100,7 +100,7 @@ class _TelaClassificacaoGeralState extends State<TelaClassificacaoGeral> {
         children: [
           Align(
             alignment: const Alignment(0.0, -0.85),
-            child: Text('Classificação Geral', style: AppTextStyles.screenTitle),
+            child: Text('Classificação geral', style: AppTextStyles.screenTitle),
           ),
           SafeArea(
             child: Padding(
