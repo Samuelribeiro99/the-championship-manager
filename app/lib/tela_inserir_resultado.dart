@@ -209,8 +209,12 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
       // Atualiza a partida na subcoleção
       DocumentReference partidaRef = campeonatoRef.collection('partidas').doc(widget.partida.id);
       batch.update(partidaRef, {'placar1': placar1, 'placar2': placar2, 'finalizada': true});
+      batch.update(campeonatoRef, {'classificacao': novaClassificacaoParaSalvar});
+
       if (isUltimaPartida) {
-        // Lista de troféus disponíveis
+        String nomeCampeao;
+        nomeCampeao = classificacaoAtual[0].nome;
+
         final listaDeTrofeus = [
           'assets/trofeus/trofeu1.png',
           'assets/trofeus/trofeu2.png',
@@ -224,6 +228,7 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
         batch.update(campeonatoRef, {
           'status': 'finalizado',
           'trofeuUrl': trofeuUrlSorteado,
+          'campeaoNome': nomeCampeao,
         });
       }
           
