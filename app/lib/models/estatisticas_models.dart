@@ -46,3 +46,51 @@ class CampeonatoFinalizado {
     required this.trofeuUrl,
   });
 }
+
+class RecordeGoleada {
+  final String vencedor;
+  final String perdedor;
+  final int placarVencedor;
+  final int placarPerdedor;
+
+  RecordeGoleada({
+    required this.vencedor,
+    required this.perdedor,
+    required this.placarVencedor,
+    required this.placarPerdedor,
+  });
+
+  int get saldoDeGols => placarVencedor - placarPerdedor;
+}
+
+class EstatisticasRecordes {
+  final RecordeGoleada? maiorGoleada;
+  final EstatisticasJogador? melhorAtaque;
+  final EstatisticasJogador? melhorDefesa;
+  final MapEntry<String, int>? maiorCampeao;
+  final EstatisticasJogador? maiorVitorioso;
+
+  EstatisticasRecordes({
+    this.maiorGoleada,
+    this.melhorAtaque,
+    this.melhorDefesa,
+    this.maiorCampeao,
+    this.maiorVitorioso,
+  });
+}
+
+class EstatisticasPatos {
+  final RecordeGoleada? piorGoleadaSofrida;
+  final MapEntry<String, int>? maiorLanterna; // Jogador e número de últimos lugares
+  final EstatisticasJogador? piorAtaque;
+  final EstatisticasJogador? maiorPerdedor;
+  final EstatisticasJogador? piorDefesa;
+
+  EstatisticasPatos({
+    this.piorGoleadaSofrida,
+    this.maiorLanterna,
+    this.piorAtaque,
+    this.maiorPerdedor,
+    this.piorDefesa,
+  });
+}
