@@ -94,3 +94,18 @@ class EstatisticasPatos {
     this.piorDefesa,
   });
 }
+
+class ConfrontoDiretoStats {
+  final String jogador1;
+  final String jogador2;
+
+  int vitoriasJogador1 = 0;
+  int vitoriasJogador2 = 0;
+  int empates = 0;
+  int golsJogador1 = 0;
+  int golsJogador2 = 0;
+
+  ConfrontoDiretoStats({required this.jogador1, required this.jogador2});
+
+  int get totalPartidas => vitoriasJogador1 + vitoriasJogador2 + empates;
+}
