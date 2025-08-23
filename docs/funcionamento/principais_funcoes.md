@@ -53,11 +53,26 @@ A função mais complexa e crítica do aplicativo é a `_finalizarPartida` dentr
 6. **Finalizar o campeonato**: Verifica se a partida jogada foi a última. Se sim, atualiza o status do campeonato, define o campeão e sorteia um troféu.
 7. Salvar todas as alterações (partida e classificação) no Firestore usando um WriteBatch.
 
-##### Pontos de Atenção:
+#### Pontos de Atenção:
 - Esta função é o "cérebro" do campeonato. Qualquer alteração nos critérios de desempate ou na forma como os pontos são calculados deve ser feita aqui.
 - A lógica de ordenação (sort) é particularmente sensível.
 
-## 6. Widgets Reutilizáveis
+### 6. Estatísticas e Recordes
+Esta seção agrega os dados de todos os campeonatos finalizados para fornecer insights e rankings gerais.
+
+- `tela_estatisticas.dart`: É o menu principal para todas as telas de estatísticas.
+- `tela_classificacao_geral.dart`: Exibe uma tabela completa com as estatísticas acumuladas de todos os jogadores (Aproveitamento, V, E, D, Gols, etc.). A função `_calcularEstatisticasGerais` é responsável por buscar e agregar os dados.
+- `tela_hall_de_campeoes.dart`: Mostra um gráfico de pizza com a porcentagem de títulos por jogador. A função `_contarTitulos` busca e contabiliza os campeões. Leva para a `tela_sala_de_trofeus.dart`.
+- `tela_sala_de_trofeus.dart`: Exibe um "card" para cada campeonato finalizado, mostrando o troféu e o nome do campeão.
+- `tela_recordes.dart`: Apresenta os recordes positivos, como "Maior Goleada", "Melhor Ataque", etc., em cards individuais.
+- `tela_patos.dart`: O "Mural da Vergonha", mostrando recordes negativos como "Pior Defesa", "Maior Lanterna", etc.
+- `tela_selecao_confronto.dart` e `tela_confronto_direto.dart`: Um fluxo onde o usuário seleciona dois jogadores para ver um resumo detalhado dos confrontos diretos entre eles.
+
+#### Pontos de Atenção:
+- A lógica de agregação de dados em tela_classificacao_geral.dart, tela_recordes.dart, etc., pode se tornar lenta com um grande número de campeonatos. No futuro, otimizar essas buscas ou usar Cloud Functions para pré-calcular os dados pode ser necessário.
+- O pacote `fl_chart` é usado para renderizar o gráfico de pizza em `tela_hall_de_campeoes.dart`.
+
+### 7. Widgets Reutilizáveis
 Para manter a consistência visual e o código limpo, criamos vários widgets reutilizáveis na pasta `app/lib/widgets/`:
 
 - `background_scaffold.dart`: O esqueleto de todas as nossas telas, com a imagem de fundo e a lógica para não redimensionar com o teclado.
@@ -65,10 +80,9 @@ Para manter a consistência visual e o código limpo, criamos vários widgets re
 - `menu_button.dart`: O botão de menu principal, com ícone (círculo ou quadrado) e texto.
 - `selection_button.dart`: O botão retangular com um `SquareIconButton` na direita, usado em listas e na tela de configurações.
 - `password_validation_fields.dart`: O conjunto de campos de senha e confirmação com validação em tempo real.
+- E outros mais específicos como `match_row_widget.dart`, `round_card_widget.dart`, etc.
 
-E outros mais específicos como `match_row_widget.dart`, `round_card_widget.dart`, etc.
-
-### 7. Utilitários
+### 8. Utilitários
 A pasta `app/lib/utils/` contém funções "assistentes" globais:
 
 - `connectivity_utils.dart`: Centraliza toda a lógica de verificação de internet, exibição de `loading` e tratamento de timeout/erros. Ponto de atenção: Se precisar mudar o tempo de timeout ou a forma como a conexão é verificada, altere aqui.
