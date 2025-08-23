@@ -131,7 +131,7 @@ class _TelaConfrontoDiretoState extends State<TelaConfrontoDireto> {
                           child: Column(
                             children: [
                               RecordCardWidget(
-                                titulo: 'Total de Partidas',
+                                titulo: 'Total de partidas',
                                 conteudo: Text(stats.totalPartidas.toString(), style: AppTextStyles.screenTitle.copyWith(fontSize: 32)),
                               ),
                               ComparisonCardWidget(
@@ -144,7 +144,7 @@ class _TelaConfrontoDiretoState extends State<TelaConfrontoDireto> {
                                 conteudo: Text(stats.empates.toString(), style: AppTextStyles.screenTitle.copyWith(fontSize: 32)),
                               ),
                               ComparisonCardWidget(
-                                titulo: 'Gols Marcados',
+                                titulo: 'Gols marcados',
                                 valorJogador1: stats.golsJogador1.toString(),
                                 valorJogador2: stats.golsJogador2.toString(),
                               ),
