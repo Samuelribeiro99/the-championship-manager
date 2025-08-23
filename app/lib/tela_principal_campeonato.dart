@@ -39,6 +39,7 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
   List<Partida> _partidas = [];
   Partida? _proximaPartida;
   String? _trofeuUrl;
+  String? _campeaoNome;
 
   @override
   void initState() {
@@ -92,6 +93,9 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
     _proximaPartida = _encontrarProximaPartida(_partidas);
       if (dadosCampeonato.containsKey('trofeuUrl')) {
         _trofeuUrl = dadosCampeonato['trofeuUrl'];
+      }
+      if (dadosCampeonato.containsKey('campeaoNome')) {
+        _campeaoNome = dadosCampeonato['campeaoNome'];
       }
   }
 
@@ -285,14 +289,15 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                         )
                       else
                         SelectionButton(
-                          text: _classificacao.isNotEmpty ? _classificacao[0].nome : "N/D",
+                          // text: _classificacao.isNotEmpty ? _classificacao[0].nome : "N/D",
+                          text: _campeaoNome ?? "N/D",
                           svgAsset: 'assets/icons/trofeu.svg',
                           onPressed: () {
-                            if (_classificacao.isNotEmpty && _trofeuUrl != null) {
+                            if (_campeaoNome != null && _trofeuUrl != null) {
                               Navigator.push(context, MaterialPageRoute(
                                 builder: (context) => TelaCampeao(
                                   nomeDoCampeonato: widget.nomeDoCampeonato,
-                                  nomeDoCampeao: _classificacao[0].nome,
+                                  nomeDoCampeao: _campeaoNome!,
                                   trofeuUrl: _trofeuUrl!,
                                 ),
                               ));
