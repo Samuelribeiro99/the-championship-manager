@@ -36,7 +36,7 @@ class TelaEstatisticas extends StatelessWidget {
                   const SizedBox(height: 150), // Espaço para o título não sobrepor
                   // --- LISTA DE BOTÕES DE SELEÇÃO ---
                   SelectionButton(
-                    text: 'Classificação Geral',
+                    text: 'Classificação geral',
                     svgAsset: 'assets/icons/classificacao_geral.svg',
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaClassificacaoGeral()));
@@ -52,7 +52,7 @@ class TelaEstatisticas extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   SelectionButton(
-                    text: 'Recordes e Patos',
+                    text: 'Recordes',
                     svgAsset: 'assets/icons/recordes.svg',
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaRecordes()));
@@ -60,7 +60,7 @@ class TelaEstatisticas extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   SelectionButton(
-                    text: 'Confronto Direto',
+                    text: 'Confronto direto',
                     svgAsset: 'assets/icons/confronto_direto.svg',
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaSelecaoConfronto()));
