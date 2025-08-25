@@ -75,8 +75,22 @@ class _TelaRecordesState extends State<TelaRecordes> {
           final p1 = (dadosPartida['placar1'] as num).toInt();
           final p2 = (dadosPartida['placar2'] as num).toInt();
           final saldo = (p1 - p2).abs();
+          final placarVencedorAtual = p1 > p2 ? p1 : p2;
 
-          if (maiorGoleada == null || saldo > maiorGoleada.saldoDeGols) {
+          bool isNewRecord = false;
+          if (maiorGoleada == null) {
+            isNewRecord = true;
+          } else {
+            if (saldo > maiorGoleada.saldoDeGols) {
+              isNewRecord = true;
+            } else if (saldo == maiorGoleada.saldoDeGols) {
+              if (placarVencedorAtual > maiorGoleada.placarVencedor) {
+                isNewRecord = true;
+              }
+            }
+          }
+
+          if (isNewRecord) {
             maiorGoleada = RecordeGoleada(
               vencedor: p1 > p2 ? dadosPartida['jogador1'] : dadosPartida['jogador2'],
               perdedor: p1 < p2 ? dadosPartida['jogador1'] : dadosPartida['jogador2'],

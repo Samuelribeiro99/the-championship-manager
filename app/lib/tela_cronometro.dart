@@ -89,7 +89,7 @@ class _TelaCronometroState extends State<TelaCronometro> {
               Navigator.of(context).pop();
               _zerarCronometro();
             },
-            child: const Text('Ok'),
+            child: const Text('OK'),
           ),
         ],
       ),

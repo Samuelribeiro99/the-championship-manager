@@ -1,5 +1,3 @@
-// Em lib/models/campeonato_models.dart
-
 class JogadorNaClassificacao {
   final String nome;
   int pontos = 0;
@@ -25,10 +23,16 @@ class Partida {
   int? placar2;
   bool finalizada = false;
 
+  final String tipo;
+  int? placar1Penaltis;
+  int? placar2Penaltis;
+
+
   Partida({
     required this.id,
     required this.rodada,
     required this.jogador1,
-    required this.jogador2
+    required this.jogador2,
+    this.tipo = 'regular',
   });
 }

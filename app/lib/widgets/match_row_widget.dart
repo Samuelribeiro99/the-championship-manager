@@ -6,11 +6,13 @@ import 'package:app/theme/app_colors.dart';
 class MatchRowWidget extends StatelessWidget {
   final Partida partida;
   final VoidCallback onPressed;
+  final bool isEnabled;
 
   const MatchRowWidget({
     super.key,
     required this.partida,
     required this.onPressed,
+    this.isEnabled = true,
   });
 
   // Helper para construir a linha de um jogador (Nome + Placar)
@@ -93,7 +95,7 @@ class MatchRowWidget extends StatelessWidget {
             svgAsset: partida.finalizada 
               ? 'assets/icons/editar.svg' 
               : 'assets/icons/vai.svg',
-            onPressed: onPressed,
+            onPressed: isEnabled ? onPressed : null,
             size: 50,
           ),
         ],

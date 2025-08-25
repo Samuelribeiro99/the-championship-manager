@@ -179,6 +179,26 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
             'placar1': null,
             'placar2': null,
             'finalizada': false,
+            'tipo': 'regular', // Adiciona o tipo padrão
+            'placar1Penaltis': null, // Adiciona campo de pênaltis
+            'placar2Penaltis': null, // Adiciona campo de pênaltis
+          });
+        }
+        if (widget.modo == ModoCampeonato.pontosCorridosIdaComFinal) {
+          // Calcula qual será o número da "rodada" da final
+          int numRodadas = (_jogadores.length % 2 != 0) ? _jogadores.length : _jogadores.length - 1;
+          
+          DocumentReference finalRef = campeonatoRef.collection('partidas').doc();
+          batch.set(finalRef, {
+            'rodada': numRodadas + 1,
+            'jogador1': '1º colocado',
+            'jogador2': '2º colocado',
+            'placar1': null,
+            'placar2': null,
+            'finalizada': false,
+            'tipo': 'final', // Identifica esta partida como a final
+            'placar1Penaltis': null,
+            'placar2Penaltis': null,
           });
         }
         await batch.commit();

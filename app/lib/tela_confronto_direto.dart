@@ -57,17 +57,34 @@ class _TelaConfrontoDiretoState extends State<TelaConfrontoDireto> {
         // Verifica se a partida é entre os dois jogadores selecionados
         if ((j1 == widget.jogador1 && j2 == widget.jogador2) || (j1 == widget.jogador2 && j2 == widget.jogador1)) {
           if (dados['finalizada'] == true) {
+            // Incrementa o total de partidas para cada jogo finalizado encontrado
+            stats.totalPartidas++;
+
             final p1 = (dados['placar1'] as num).toInt();
             final p2 = (dados['placar2'] as num).toInt();
+            final tipo = dados['tipo'] as String? ?? 'regular';
 
             if (p1 == p2) {
-              stats.empates++;
+              // Se empatou no tempo normal, verifica se é uma final decidida nos pênaltis
+              if (tipo == 'final' && dados.containsKey('placar1Penaltis') && dados['placar1Penaltis'] != null) {
+                final pen1 = (dados['placar1Penaltis'] as num).toInt();
+                final pen2 = (dados['placar2Penaltis'] as num).toInt();
+                if ((j1 == widget.jogador1 && pen1 > pen2) || (j2 == widget.jogador1 && pen2 > pen1)) {
+                    stats.vitoriasJogador1++;
+                } else {
+                    stats.vitoriasJogador2++;
+                }
+              } else {
+                // Se for um empate em jogo normal, contabiliza o empate
+                stats.empates++;
+              }
             } else if ((j1 == widget.jogador1 && p1 > p2) || (j2 == widget.jogador1 && p2 > p1)) {
               stats.vitoriasJogador1++;
             } else {
               stats.vitoriasJogador2++;
             }
             
+            // Gols são sempre contabilizados pelo placar do tempo normal
             if (j1 == widget.jogador1) {
               stats.golsJogador1 += p1;
               stats.golsJogador2 += p2;

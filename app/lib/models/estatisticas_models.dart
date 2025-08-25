@@ -9,6 +9,7 @@ class EstatisticasJogador {
   int totalGolsPro = 0;
   int totalGolsContra = 0;
   int totalPontos = 0;
+  int totalFinais = 0;
 
   EstatisticasJogador({required this.nome});
 
@@ -107,5 +108,5 @@ class ConfrontoDiretoStats {
 
   ConfrontoDiretoStats({required this.jogador1, required this.jogador2});
 
-  int get totalPartidas => vitoriasJogador1 + vitoriasJogador2 + empates;
+  int totalPartidas = 0; 
 }

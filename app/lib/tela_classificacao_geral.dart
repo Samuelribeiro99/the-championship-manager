@@ -82,9 +82,12 @@ class _TelaClassificacaoGeralState extends State<TelaClassificacaoGeral> {
     mostrarPopupAlerta(context, 
       'A classificação geral agrega os dados de todos os campeonatos finalizados.\n\n'
       'APR: Aproveitamento (%)\n'
+      'F: Finais Disputadas\n'
+      'J: Jogos (fase de pontos + finais)\n'
       'V: Vitórias\n'
       'E: Empates\n'
       'D: Derrotas\n'
+      'SG: Saldo de Gols\n'
       'GP: Gols Pró\n'
       'GC: Gols Contra\n'
       'MGP: Média de Gols Pró\n'
@@ -139,10 +142,12 @@ class _TelaClassificacaoGeralState extends State<TelaClassificacaoGeral> {
                             columns: const [
                               DataColumn(label: SizedBox(width: 150, child: Padding(padding: EdgeInsets.symmetric(horizontal: 8.0), child: Text('Participante', style: TextStyle(fontWeight: FontWeight.bold))))),
                               DataColumn(label: SizedBox(width: 60, child: Center(child: Text('APR (%)', style: TextStyle(fontWeight: FontWeight.bold))))),
+                              DataColumn(label: SizedBox(width: 60, child: Center(child: Text('F', style: TextStyle(fontWeight: FontWeight.bold))))),
                               DataColumn(label: SizedBox(width: 60, child: Center(child: Text('J', style: TextStyle(fontWeight: FontWeight.bold))))),
                               DataColumn(label: SizedBox(width: 60, child: Center(child: Text('V', style: TextStyle(fontWeight: FontWeight.bold))))),
                               DataColumn(label: SizedBox(width: 60, child: Center(child: Text('E', style: TextStyle(fontWeight: FontWeight.bold))))),
                               DataColumn(label: SizedBox(width: 60, child: Center(child: Text('D', style: TextStyle(fontWeight: FontWeight.bold))))),
+                              DataColumn(label: SizedBox(width: 60, child: Center(child: Text('SG', style: TextStyle(fontWeight: FontWeight.bold))))),
                               DataColumn(label: SizedBox(width: 60, child: Center(child: Text('GP', style: TextStyle(fontWeight: FontWeight.bold))))),
                               DataColumn(label: SizedBox(width: 60, child: Center(child: Text('GC', style: TextStyle(fontWeight: FontWeight.bold))))),
                               DataColumn(label: SizedBox(width: 70, child: Center(child: Text('MGP', style: TextStyle(fontWeight: FontWeight.bold))))),
@@ -152,10 +157,12 @@ class _TelaClassificacaoGeralState extends State<TelaClassificacaoGeral> {
                               cells: [
                                 DataCell(SizedBox(width: 150, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8.0), child: Text(stats.nome, overflow: TextOverflow.ellipsis)))),
                                 DataCell(SizedBox(width: 70, child: Center(child: Text(stats.aproveitamento.toStringAsFixed(1))))),
-                                DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalJogos.toString())))),
+                                DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalFinais.toString())))),
+                                DataCell(SizedBox(width: 60, child: Center(child: Text((stats.totalJogos + stats.totalFinais).toString())))),
                                 DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalVitorias.toString())))),
                                 DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalEmpates.toString())))),
                                 DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalDerrotas.toString())))),
+                                DataCell(SizedBox(width: 60, child: Center(child: Text(stats.saldoDeGols.toString())))),
                                 DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalGolsPro.toString())))),
                                 DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalGolsContra.toString())))),
                                 DataCell(SizedBox(width: 70, child: Center(child: Text(stats.mediaGolsPro.toStringAsFixed(2))))),
