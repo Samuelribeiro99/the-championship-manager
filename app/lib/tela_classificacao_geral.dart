@@ -141,7 +141,7 @@ class _TelaClassificacaoGeralState extends State<TelaClassificacaoGeral> {
                             columnSpacing: 0,
                             columns: const [
                               DataColumn(label: SizedBox(width: 150, child: Padding(padding: EdgeInsets.symmetric(horizontal: 8.0), child: Text('Participante', style: TextStyle(fontWeight: FontWeight.bold))))),
-                              DataColumn(label: SizedBox(width: 60, child: Center(child: Text('APR (%)', style: TextStyle(fontWeight: FontWeight.bold))))),
+                              DataColumn(label: SizedBox(width: 70, child: Center(child: Text('APR (%)', style: TextStyle(fontWeight: FontWeight.bold))))),
                               DataColumn(label: SizedBox(width: 60, child: Center(child: Text('F', style: TextStyle(fontWeight: FontWeight.bold))))),
                               DataColumn(label: SizedBox(width: 60, child: Center(child: Text('J', style: TextStyle(fontWeight: FontWeight.bold))))),
                               DataColumn(label: SizedBox(width: 60, child: Center(child: Text('V', style: TextStyle(fontWeight: FontWeight.bold))))),
