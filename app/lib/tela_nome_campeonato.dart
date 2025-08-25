@@ -89,7 +89,7 @@ class _TelaNomeCampeonatoState extends State<TelaNomeCampeonato> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Ok'),
+            child: const Text('OK'),
           ),
         ],
       ),

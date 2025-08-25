@@ -5,18 +5,22 @@ import 'package:app/theme/app_colors.dart';
 import 'package:app/theme/text_styles.dart';
 
 class RoundCardWidget extends StatelessWidget {
-  final int numeroRodada;
+  final int? numeroRodada;
+  final String? titulo;
   final List<Partida> partidas;
   final String campeonatoId;
   final Function(Partida) onPartidaEdit;
+  final bool isEnabled;
 
   const RoundCardWidget({
     super.key,
-    required this.numeroRodada,
+    this.numeroRodada,
+    this.titulo,
     required this.partidas,
     required this.campeonatoId,
     required this.onPartidaEdit,
-  });
+    this.isEnabled = true,
+  }) : assert(numeroRodada != null || titulo != null, 'É necessário fornecer "numeroRodada" ou "titulo".');
 
   @override
   Widget build(BuildContext context) {
@@ -33,13 +37,14 @@ class RoundCardWidget extends StatelessWidget {
         children: [
           // Título da rodada
           Text(
-            'Rodada $numeroRodada',
+            titulo ?? 'Rodada $numeroRodada',
             style: AppTextStyles.screenTitle.copyWith(fontSize: 30),
           ),
           // Lista de partidas, usando o widget que acabamos de criar
           ...partidas.map((partida) => MatchRowWidget(
             partida: partida,
             onPressed: () => onPartidaEdit(partida),
+            isEnabled: isEnabled,
           )).toList(),
         ],
       ),

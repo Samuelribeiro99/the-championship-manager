@@ -72,8 +72,22 @@ class _TelaPatosState extends State<TelaPatos> {
           final p1 = (dadosPartida['placar1'] as num).toInt();
           final p2 = (dadosPartida['placar2'] as num).toInt();
           final saldo = (p1 - p2).abs();
+          final placarVencedorAtual = p1 > p2 ? p1 : p2;
 
-          if (piorGoleadaSofrida == null || saldo > piorGoleadaSofrida.saldoDeGols) {
+          bool isNewRecord = false;
+          if (piorGoleadaSofrida == null) {
+            isNewRecord = true;
+          } else {
+            if (saldo > piorGoleadaSofrida.saldoDeGols) {
+              isNewRecord = true;
+            } else if (saldo == piorGoleadaSofrida.saldoDeGols) {
+              if (placarVencedorAtual > piorGoleadaSofrida.placarVencedor) {
+                isNewRecord = true;
+              }
+            }
+          }
+
+          if (isNewRecord) {
             piorGoleadaSofrida = RecordeGoleada(
               vencedor: p1 > p2 ? dadosPartida['jogador1'] : dadosPartida['jogador2'],
               perdedor: p1 < p2 ? dadosPartida['jogador1'] : dadosPartida['jogador2'],

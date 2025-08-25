@@ -5,11 +5,13 @@ import 'package:app/theme/app_colors.dart';
 class PlacarJogadorWidget extends StatefulWidget {
   final String nomeJogador;
   final int? placarInicial;
+  final VoidCallback? onPlacarChanged;
 
   const PlacarJogadorWidget({
     super.key,
     required this.nomeJogador,
     this.placarInicial,
+    this.onPlacarChanged,
   });
 
   @override
@@ -32,6 +34,7 @@ class PlacarJogadorWidgetState extends State<PlacarJogadorWidget> {
     setState(() {
       _placar++;
     });
+    widget.onPlacarChanged?.call();
   }
 
   void _diminuirPlacar() {
@@ -39,6 +42,7 @@ class PlacarJogadorWidgetState extends State<PlacarJogadorWidget> {
       setState(() {
         _placar--;
       });
+      widget.onPlacarChanged?.call();
     }
   }
 

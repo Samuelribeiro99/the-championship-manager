@@ -6,6 +6,19 @@ import 'package:app/theme/text_styles.dart';
 import 'package:app/widgets/square_icon_button.dart';
 import 'package:app/widgets/round_card_widget.dart';
 import 'tela_inserir_resultado.dart';
+import 'package:app/models/modo_campeonato.dart';
+
+class CronogramaData {
+  final Map<int, List<Partida>> cronogramaRegular;
+  final Partida? partidaFinal;
+  final bool finalistasDefinidos;
+
+  CronogramaData({
+    required this.cronogramaRegular,
+    this.partidaFinal,
+    required this.finalistasDefinidos,
+  });
+}
 
 class TelaCronograma extends StatefulWidget {
   final String campeonatoId;
@@ -19,7 +32,7 @@ class TelaCronograma extends StatefulWidget {
 // 2. Toda a lógica foi movida para a classe de Estado
 class _TelaCronogramaState extends State<TelaCronograma> {
   // 3. Declaramos uma variável de estado para guardar o Future
-  late Future<Map<int, List<Partida>>> _cronogramaFuture;
+  late Future<CronogramaData> _cronogramaFuture;
 
   // 4. Inicializamos o Future no initState
   @override
@@ -27,35 +40,92 @@ class _TelaCronogramaState extends State<TelaCronograma> {
     super.initState();
     _cronogramaFuture = _buscarCronograma();
   }
-  Future<Map<int, List<Partida>>> _buscarCronograma() async {
-    final partidasSnapshot = await FirebaseFirestore.instance
-        .collection('campeonatos')
-        .doc(widget.campeonatoId)
-        .collection('partidas')
-        .orderBy('rodada')
-        .get();
+  Future<CronogramaData> _buscarCronograma() async {
+    final campeonatoRef = FirebaseFirestore.instance.collection('campeonatos').doc(widget.campeonatoId);
 
-    final partidas = partidasSnapshot.docs.map((doc) {
-      final dados = doc.data();
+    // Busca o documento do campeonato e a subcoleção de partidas em paralelo para otimizar
+    final responses = await Future.wait([
+      campeonatoRef.get(),
+      campeonatoRef.collection('partidas').orderBy('rodada').get(),
+    ]);
+
+    final campeonatoSnapshot = responses[0] as DocumentSnapshot;
+    final partidasSnapshot = responses[1] as QuerySnapshot;
+
+    if (!campeonatoSnapshot.exists) {
+      throw Exception('Campeonato não encontrado.');
+    }
+
+    final dadosCampeonato = campeonatoSnapshot.data() as Map<String, dynamic>;
+    final modo = ModoCampeonato.values.firstWhere(
+      (e) => e.toString() == dadosCampeonato['modo'],
+      orElse: () => ModoCampeonato.pontosCorridosIda,
+    );
+
+    // Mapeia todas as partidas do Firestore para o nosso modelo Dart
+    final allPartidas = partidasSnapshot.docs.map((doc) {
+      final dados = doc.data() as Map<String, dynamic>;
       return Partida(
         id: doc.id,
         rodada: dados['rodada'],
         jogador1: dados['jogador1'],
         jogador2: dados['jogador2'],
+        tipo: dados['tipo'] ?? 'regular',
       )
         ..placar1 = dados['placar1']
         ..placar2 = dados['placar2']
         ..finalizada = dados['finalizada'];
     }).toList();
-    
-    Map<int, List<Partida>> cronograma = {};
-    for (var partida in partidas) {
-      if (!cronograma.containsKey(partida.rodada)) {
-        cronograma[partida.rodada] = [];
-      }
-      cronograma[partida.rodada]!.add(partida);
+
+    // Separa as partidas da fase de pontos e a partida da final
+    final partidasRegulares = allPartidas.where((p) => p.tipo == 'regular').toList();
+    Partida? partidaFinal;
+    try {
+      partidaFinal = allPartidas.firstWhere((p) => p.tipo == 'final');
+    } catch (e) {
+      partidaFinal = null; // Nenhum jogo final encontrado (acontece em campeonatos antigos)
     }
-    return cronograma;
+
+    // Agrupa as partidas regulares por rodada
+    Map<int, List<Partida>> cronogramaRegular = {};
+    for (var partida in partidasRegulares) {
+      if (!cronogramaRegular.containsKey(partida.rodada)) {
+        cronogramaRegular[partida.rodada] = [];
+      }
+      cronogramaRegular[partida.rodada]!.add(partida);
+    }
+
+    bool finalistasDefinidos = false;
+    // Lógica para definir os finalistas
+    if (modo == ModoCampeonato.pontosCorridosIdaComFinal && partidaFinal != null) {
+      final todasRegularesFinalizadas = partidasRegulares.every((p) => p.finalizada);
+      if (todasRegularesFinalizadas) {
+        finalistasDefinidos = true;
+        
+        // Pega a classificação já ordenada do documento do campeonato
+        final classificacao = (dadosCampeonato['classificacao'] as List);
+
+        if (classificacao.length >= 2) {
+          // Atualiza a partida final com os nomes reais dos finalistas
+          partidaFinal = Partida(
+            id: partidaFinal.id,
+            rodada: partidaFinal.rodada,
+            jogador1: classificacao[0]['nome'], // 1º colocado
+            jogador2: classificacao[1]['nome'], // 2º colocado
+            tipo: 'final',
+          )
+            ..placar1 = partidaFinal.placar1
+            ..placar2 = partidaFinal.placar2
+            ..finalizada = partidaFinal.finalizada;
+        }
+      }
+    }
+
+    return CronogramaData(
+      cronogramaRegular: cronogramaRegular,
+      partidaFinal: partidaFinal,
+      finalistasDefinidos: finalistasDefinidos,
+    );
   }
   void _editarPartida(BuildContext context, Partida partida) {
     Navigator.push(
@@ -85,31 +155,51 @@ class _TelaCronogramaState extends State<TelaCronograma> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 120, 24, 140),
-              child: FutureBuilder<Map<int, List<Partida>>>(
+              child: FutureBuilder<CronogramaData>(
                 future: _cronogramaFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Erro: ${snapshot.error}'));
+                  }
+                  if (!snapshot.hasData) {
                     return const Center(child: Text('Nenhum jogo encontrado.'));
                   }
 
-                  final cronograma = snapshot.data!;
+                  final data = snapshot.data!;
+                  final cronograma = data.cronogramaRegular;
                   final rodadas = cronograma.keys.toList()..sort();
+                  final temFinal = data.partidaFinal != null;
 
                   return ListView.builder(
-                    itemCount: rodadas.length,
+                    // O total de itens é o número de rodadas + 1 (para a final, se houver)
+                    itemCount: rodadas.length + (temFinal ? 1 : 0),
                     itemBuilder: (context, index) {
-                      final numeroRodada = rodadas[index];
-                      final partidasDaRodada = cronograma[numeroRodada]!;
-                      
-                      return RoundCardWidget(
-                        numeroRodada: numeroRodada,
-                        partidas: partidasDaRodada,
-                        campeonatoId: widget.campeonatoId,
-                        onPartidaEdit: (partida) => _editarPartida(context, partida),
-                      );
+                      // Se o índice for menor que o número de rodadas, é uma rodada normal
+                      if (index < rodadas.length) {
+                        final numeroRodada = rodadas[index];
+                        final partidasDaRodada = cronograma[numeroRodada]!;
+                        
+                        return RoundCardWidget(
+                          numeroRodada: numeroRodada,
+                          partidas: partidasDaRodada,
+                          campeonatoId: widget.campeonatoId,
+                          onPartidaEdit: (partida) => _editarPartida(context, partida),
+                        );
+                      } 
+                      // Senão, é o card da Final
+                      else {
+                        return RoundCardWidget(
+                          titulo: 'Final',
+                          partidas: [data.partidaFinal!],
+                          campeonatoId: widget.campeonatoId,
+                          onPartidaEdit: (partida) => _editarPartida(context, partida),
+                          // O botão só estará habilitado se os finalistas estiverem definidos
+                          isEnabled: data.finalistasDefinidos,
+                        );
+                      }
                     },
                   );
                 },
