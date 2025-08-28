@@ -6,6 +6,7 @@ import 'package:app/theme/app_colors.dart';
 import 'package:app/theme/text_styles.dart';
 import 'package:app/utils/popup_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'tela_reset_senha.dart';
 
 class TelaLogin extends StatefulWidget {
   const TelaLogin({super.key});
@@ -19,6 +20,15 @@ class _TelaLoginState extends State<TelaLogin> {
   final _passwordController = TextEditingController();
   bool _loading = false; 
   bool _senhaObscura = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Adiciona um listener para reconstruir a tela quando o texto mudar
+    _passwordController.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   void dispose() {
@@ -90,6 +100,13 @@ class _TelaLoginState extends State<TelaLogin> {
       MaterialPageRoute(builder: (context) => const TelaCadastro()),
     );
   }
+  
+  // NOVA FUNÇÃO PARA NAVEGAR
+  void _irParaTelaResetSenha() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const TelaResetSenha()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,20 +131,29 @@ class _TelaLoginState extends State<TelaLogin> {
                     obscureText: _senhaObscura, // Usa a variável de estado
                     decoration: InputDecoration(
                       labelText: 'Senha',
-                      // Adiciona o ícone de olho aqui
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _senhaObscura ? Icons.visibility_off : Icons.visibility,
-                        ),
-                          onPressed: () {
-                          setState(() {
-                            _senhaObscura = !_senhaObscura;
-                          });
-                        },
-                      ),
+                      // *** LÓGICA CONDICIONAL DO SUFIXO ***
+                      suffixIcon: _passwordController.text.isEmpty
+                          ? TextButton(
+                              onPressed: _irParaTelaResetSenha,
+                              child: const Text(
+                                'Esqueceu?',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            )
+                          : IconButton(
+                              icon: Icon(
+                                _senhaObscura ? Icons.visibility_off : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _senhaObscura = !_senhaObscura;
+                                });
+                              },
+                            ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  // BOTÃO ANTIGO REMOVIDO DAQUI
+                  const SizedBox(height: 32), // Aumenta o espaço após o campo de senha
                   Center(
                     child: OutlinedButton(
                       // 3. O BOTÃO AGORA USA A VARIÁVEL _loading
@@ -137,7 +163,7 @@ class _TelaLoginState extends State<TelaLogin> {
                       ),
                       // Mostra o indicador de progresso ou o texto
                       child: _loading
-                          ? CircularProgressIndicator(color: AppColors.borderYellow)
+                          ? const CircularProgressIndicator(color: AppColors.borderYellow)
                           : const Text('Entrar'),
                     ),
                   ),
@@ -167,9 +193,9 @@ class _TelaLoginState extends State<TelaLogin> {
               ),
             ),
           ),
-          Align(
-            alignment: const Alignment(-0.0, -0.85), // Centralizado horizontalmente, um pouco abaixo do topo
-            child: const Text(
+          const Align(
+            alignment: Alignment(-0.0, -0.85),
+            child: Text(
               'Login',
               style: AppTextStyles.screenTitle,
             ),
