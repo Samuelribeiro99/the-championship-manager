@@ -119,7 +119,7 @@ class _TelaLoginState extends State<TelaLogin> {
                         icon: Icon(
                           _senhaObscura ? Icons.visibility_off : Icons.visibility,
                         ),
-                                             onPressed: () {
+                          onPressed: () {
                           setState(() {
                             _senhaObscura = !_senhaObscura;
                           });
@@ -133,7 +133,7 @@ class _TelaLoginState extends State<TelaLogin> {
                       // 3. O BOTÃO AGORA USA A VARIÁVEL _loading
                       onPressed: _loading ? null : _login, // Desabilita o botão durante o loading
                       style: OutlinedButton.styleFrom().copyWith(
-                        minimumSize: MaterialStateProperty.all(const Size(150, 50)),
+                        minimumSize: WidgetStateProperty.all(const Size(150, 50)),
                       ),
                       // Mostra o indicador de progresso ou o texto
                       child: _loading

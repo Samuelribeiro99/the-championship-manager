@@ -188,7 +188,7 @@ class _TelaClassificacaoGeralState extends State<TelaClassificacaoGeral> {
                           scrollDirection: Axis.horizontal,
                           child: DataTable(
                             border: TableBorder.all(width: 2.0, color: AppColors.borderYellow),
-                            headingRowColor: MaterialStateProperty.all(AppColors.borderYellow.withOpacity(0.2)),
+                            headingRowColor: WidgetStateProperty.all(AppColors.borderYellow.withOpacity(0.2)),
                             dividerThickness: 0,
                             horizontalMargin: 4,
                             columnSpacing: 0,
