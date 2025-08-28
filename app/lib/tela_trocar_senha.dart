@@ -5,7 +5,8 @@ import 'package:app/widgets/square_icon_button.dart';
 import 'package:app/widgets/password_validation_fields.dart';
 import 'package:app/theme/text_styles.dart';
 import 'package:app/utils/connectivity_utils.dart';
-import 'package:app/utils/popup_utils.dart'; 
+import 'package:app/utils/popup_utils.dart';
+import 'tela_reset_senha.dart';
 
 class TelaTrocarSenha extends StatefulWidget {
   const TelaTrocarSenha({super.key});
@@ -22,11 +23,27 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
   bool _senhaAntigaObscura = true;
 
   @override
+  void initState() {
+    super.initState();
+    // Adiciona um listener para reconstruir a tela quando o texto mudar
+    _senhaAntigaController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
   void dispose() {
     _senhaAntigaController.dispose();
     _novaSenhaController.dispose();
     _confirmarNovaSenhaController.dispose();
     super.dispose();
+  }
+
+  // FUNÇÃO DE NAVEGAÇÃO PARA A TELA DE RESET
+  void _irParaTelaResetSenha() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const TelaResetSenha()),
+    );
   }
 
   Future<void> _salvarNovaSenha() async {
@@ -124,16 +141,25 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
                       obscureText: _senhaAntigaObscura,
                       decoration: InputDecoration(
                         labelText: 'Senha antiga',
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _senhaAntigaObscura ? Icons.visibility_off : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _senhaAntigaObscura = !_senhaAntigaObscura;
-                            });
-                          },
-                        ),
+                        // *** LÓGICA CONDICIONAL DO SUFIXO ***
+                        suffixIcon: _senhaAntigaController.text.isEmpty
+                            ? TextButton(
+                                onPressed: _irParaTelaResetSenha,
+                                child: const Text(
+                                  'Esqueceu?',
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                              )
+                            : IconButton(
+                                icon: Icon(
+                                  _senhaAntigaObscura ? Icons.visibility_off : Icons.visibility,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _senhaAntigaObscura = !_senhaAntigaObscura;
+                                  });
+                                },
+                              ),
                       ),
                     ),
                     const SizedBox(height: 24),
