@@ -44,7 +44,7 @@ class _TelaResetSenhaState extends State<TelaResetSenha> {
             Navigator.of(context).pop(); // Fecha o loading
             await mostrarPopupAlerta(
               context,
-              'Se este e-mail estiver cadastrado, um link para redefinição de senha foi enviado.',
+              'Se este e-mail estiver cadastrado, um link para redefinição de senha foi enviado. Verifique sua caixa de entrada e spam.',
               titulo: 'Verifique seu E-mail',
             );
             if (mounted) {
@@ -59,7 +59,7 @@ class _TelaResetSenhaState extends State<TelaResetSenha> {
           if (e.code == 'user-not-found') {
              await mostrarPopupAlerta(
               context,
-              'Se este e-mail estiver cadastrado, um link para redefinição de senha foi enviado.',
+              'Se este e-mail estiver cadastrado, um link para redefinição de senha foi enviado. Verifique sua caixa de entrada e spam.',
               titulo: 'Verifique seu E-mail',
             );
             if (mounted) Navigator.of(context).pop();

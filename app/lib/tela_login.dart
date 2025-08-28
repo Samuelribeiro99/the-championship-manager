@@ -57,12 +57,26 @@ class _TelaLoginState extends State<TelaLogin> {
         return;
       }
       
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      // Se o login der certo, o AuthPage navega e esta tela é removida da árvore.
-      // O 'finally' abaixo ainda será executado, mas não causará problemas.
+
+      // *** NOVA VERIFICAÇÃO DE E-MAIL CONFIRMADO ***
+      final user = userCredential.user;
+      if (user != null && !user.emailVerified) {
+        // Se o e-mail não foi verificado, desloga o usuário imediatamente
+        await FirebaseAuth.instance.signOut();
+        // E mostra um alerta
+        if (mounted) {
+          mostrarPopupAlerta(
+            context,
+            'Seu e-mail ainda não foi verificado. Por favor, clique no link que enviamos para sua caixa de entrada.',
+            titulo: 'E-mail não verificado'
+          );
+        }
+      }
+      // Se o e-mail estiver verificado, o AuthPage cuidará da navegação.
 
     } on FirebaseAuthException catch (e) {
       String mensagemErro = 'Ocorreu um erro ao fazer login.';
