@@ -134,11 +134,29 @@ class _TelaPatosState extends State<TelaPatos> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  if (snapshot.hasError || !snapshot.hasData) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Erro: ${snapshot.error}'));
+                  }
+                  if (!snapshot.hasData) {
                     return const Center(child: Text('Não foi possível carregar os dados.'));
                   }
 
                   final patos = snapshot.data!;
+
+                  // *** NOVA VERIFICAÇÃO DE CONTEÚDO VAZIO ***
+                  if (patos.piorGoleadaSofrida == null &&
+                      patos.maiorLanterna == null &&
+                      patos.piorAtaque == null &&
+                      patos.maiorPerdedor == null &&
+                      patos.piorDefesa == null) {
+                    return const Center(
+                      child: Text(
+                        'Nenhum campeonato finalizado. \nFinalize um campeonato para começar.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18, color: Colors.white70),
+                      ),
+                    );
+                  }
 
                   return SingleChildScrollView(
                     child: Column(

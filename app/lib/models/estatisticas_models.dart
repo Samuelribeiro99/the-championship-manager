@@ -15,21 +15,25 @@ class EstatisticasJogador {
 
   // Calcula o aproveitamento em porcentagem
   double get aproveitamento {
-    if (totalJogos == 0) return 0.0;
+    // MUDANÇA: O total de jogos agora é a soma da fase regular + finais
+    final jogosTotais = totalJogos + totalFinais;
+    if (jogosTotais == 0) return 0.0;
     // Fórmula: (pontos ganhos / pontos possíveis) * 100
-    return (totalPontos / (totalJogos * 3)) * 100;
+    return (totalPontos / (jogosTotais * 3)) * 100;
   }
 
   // Calcula a média de gols marcados por jogo
   double get mediaGolsPro {
-    if (totalJogos == 0) return 0.0;
-    return totalGolsPro / totalJogos;
+    final jogosTotais = totalJogos + totalFinais;
+    if (jogosTotais == 0) return 0.0;
+    return totalGolsPro / jogosTotais;
   }
 
   // Calcula a média de gols sofridos por jogo
   double get mediaGolsContra {
-    if (totalJogos == 0) return 0.0;
-    return totalGolsContra / totalJogos;
+    final jogosTotais = totalJogos + totalFinais;
+    if (jogosTotais == 0) return 0.0;
+    return totalGolsContra / jogosTotais;
   }
   
   // Calcula o saldo de gols
@@ -105,8 +109,7 @@ class ConfrontoDiretoStats {
   int empates = 0;
   int golsJogador1 = 0;
   int golsJogador2 = 0;
+  int totalPartidas = 0;
 
   ConfrontoDiretoStats({required this.jogador1, required this.jogador2});
-
-  int totalPartidas = 0; 
 }

@@ -74,7 +74,13 @@ class _TelaSalaDeTrofeusState extends State<TelaSalaDeTrofeus> {
                     return Center(child: Text('Erro ao carregar troféus: ${snapshot.error}'));
                   }
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('Nenhum campeonato finalizado ainda.'));
+                    return const Center(
+                      child: Text(
+                        'Nenhum campeonato finalizado ainda.\nFinalize um campeonato para começar.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18, color: Colors.white70),
+                      )
+                    );
                   }
 
                   final campeonatos = snapshot.data!;

@@ -85,7 +85,13 @@ class _TelaSelecaoConfrontoState extends State<TelaSelecaoConfronto> {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('Nenhum jogador encontrado.'));
+                    return const Center(
+                      child: Text(
+                        'Nenhum jogador encontrado.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18, color: Colors.white70),
+                      )
+                    );
                   }
 
                   final todosJogadores = snapshot.data!;
