@@ -46,12 +46,12 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
     final nome = _nomeJogadorController.text.trim();
     
     if (nome.isEmpty) {
-      mostrarPopupAlerta(context, 'Por favor, insira o nome do jogador.');
+      mostrarPopupAlerta(context, 'Por favor, insira o nome do participante.');
       return;
     }
 
     if (_jogadores.any((jogador) => jogador.toLowerCase() == nome.toLowerCase())) {
-      mostrarPopupAlerta(context, 'Este jogador já foi adicionado.');
+      mostrarPopupAlerta(context, 'Este participante já foi adicionado.');
       return;
     }
 
@@ -64,7 +64,7 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
   void _removerJogador(int index) async {
     final confirmar = await mostrarPopupConfirmacao(
       context,
-      titulo: 'Remover Jogador',
+      titulo: 'Remover participante',
       mensagem: 'Tem certeza que deseja remover "${_jogadores[index]}"?',
     );
     if (confirmar == true) {
@@ -179,6 +179,26 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
             'placar1': null,
             'placar2': null,
             'finalizada': false,
+            'tipo': 'regular', // Adiciona o tipo padrão
+            'placar1Penaltis': null, // Adiciona campo de pênaltis
+            'placar2Penaltis': null, // Adiciona campo de pênaltis
+          });
+        }
+        if (widget.modo == ModoCampeonato.pontosCorridosIdaComFinal) {
+          // Calcula qual será o número da "rodada" da final
+          int numRodadas = (_jogadores.length % 2 != 0) ? _jogadores.length : _jogadores.length - 1;
+          
+          DocumentReference finalRef = campeonatoRef.collection('partidas').doc();
+          batch.set(finalRef, {
+            'rodada': numRodadas + 1,
+            'jogador1': '1º colocado',
+            'jogador2': '2º colocado',
+            'placar1': null,
+            'placar2': null,
+            'finalizada': false,
+            'tipo': 'final', // Identifica esta partida como a final
+            'placar1Penaltis': null,
+            'placar2Penaltis': null,
           });
         }
         await batch.commit();
@@ -213,7 +233,7 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
         children: [
           Align(
             alignment: const Alignment(0.0, -0.85),
-            child: Text('Adicionar jogadores', style: AppTextStyles.screenTitle),
+            child: Text('Adicionar participantes', style: AppTextStyles.screenTitle),
           ),
           
           Padding(
@@ -228,7 +248,7 @@ class _TelaAdicionarJogadoresState extends State<TelaAdicionarJogadores> {
                         controller: _nomeJogadorController,
                         maxLength: 25, // Limite para o nome do jogador
                         decoration: const InputDecoration(
-                          labelText: 'Nome do jogador',
+                          labelText: 'Nome do participante',
                           counterText: "", // Esconde o contador
                         ),
                       ),

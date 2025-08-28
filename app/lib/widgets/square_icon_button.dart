@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class SquareIconButton extends StatelessWidget {
   final String svgAsset;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final double size;
   final bool hasBorder;
 
@@ -18,7 +18,8 @@ class SquareIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconColor = AppColors.borderYellow;
+    final bool isEnabled = onPressed != null;
+    final iconColor = isEnabled ? AppColors.borderYellow : Colors.grey;
 
     return OutlinedButton(
       onPressed: onPressed,
@@ -28,7 +29,9 @@ class SquareIconButton extends StatelessWidget {
         minimumSize: WidgetStateProperty.all(Size(size, size)),
         maximumSize: WidgetStateProperty.all(Size(size, size)),
         padding: WidgetStateProperty.all(const EdgeInsets.all(10)),
-        side: !hasBorder ? WidgetStateProperty.all(BorderSide.none) : null,
+        side: !hasBorder 
+            ? WidgetStateProperty.all(BorderSide.none) 
+            : WidgetStateProperty.all(BorderSide(color: iconColor, width: 5.0)),
       ),
       
       child: SvgPicture.asset(

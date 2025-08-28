@@ -6,6 +6,7 @@ import 'package:app/theme/app_colors.dart';
 import 'package:app/theme/text_styles.dart';
 import 'package:app/utils/popup_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'tela_reset_senha.dart';
 
 class TelaLogin extends StatefulWidget {
   const TelaLogin({super.key});
@@ -19,6 +20,15 @@ class _TelaLoginState extends State<TelaLogin> {
   final _passwordController = TextEditingController();
   bool _loading = false; 
   bool _senhaObscura = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Adiciona um listener para reconstruir a tela quando o texto mudar
+    _passwordController.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   void dispose() {
@@ -47,12 +57,26 @@ class _TelaLoginState extends State<TelaLogin> {
         return;
       }
       
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      // Se o login der certo, o AuthPage navega e esta tela é removida da árvore.
-      // O 'finally' abaixo ainda será executado, mas não causará problemas.
+
+      // *** NOVA VERIFICAÇÃO DE E-MAIL CONFIRMADO ***
+      final user = userCredential.user;
+      if (user != null && !user.emailVerified) {
+        // Se o e-mail não foi verificado, desloga o usuário imediatamente
+        await FirebaseAuth.instance.signOut();
+        // E mostra um alerta
+        if (mounted) {
+          mostrarPopupAlerta(
+            context,
+            'Seu e-mail ainda não foi verificado. Por favor, clique no link que enviamos para sua caixa de entrada.',
+            titulo: 'E-mail não verificado'
+          );
+        }
+      }
+      // Se o e-mail estiver verificado, o AuthPage cuidará da navegação.
 
     } on FirebaseAuthException catch (e) {
       String mensagemErro = 'Ocorreu um erro ao fazer login.';
@@ -90,6 +114,13 @@ class _TelaLoginState extends State<TelaLogin> {
       MaterialPageRoute(builder: (context) => const TelaCadastro()),
     );
   }
+  
+  // NOVA FUNÇÃO PARA NAVEGAR
+  void _irParaTelaResetSenha() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const TelaResetSenha()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,30 +145,39 @@ class _TelaLoginState extends State<TelaLogin> {
                     obscureText: _senhaObscura, // Usa a variável de estado
                     decoration: InputDecoration(
                       labelText: 'Senha',
-                      // Adiciona o ícone de olho aqui
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _senhaObscura ? Icons.visibility_off : Icons.visibility,
-                        ),
-                                             onPressed: () {
-                          setState(() {
-                            _senhaObscura = !_senhaObscura;
-                          });
-                        },
-                      ),
+                      // *** LÓGICA CONDICIONAL DO SUFIXO ***
+                      suffixIcon: _passwordController.text.isEmpty
+                          ? TextButton(
+                              onPressed: _irParaTelaResetSenha,
+                              child: const Text(
+                                'Esqueceu?',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            )
+                          : IconButton(
+                              icon: Icon(
+                                _senhaObscura ? Icons.visibility_off : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _senhaObscura = !_senhaObscura;
+                                });
+                              },
+                            ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  // BOTÃO ANTIGO REMOVIDO DAQUI
+                  const SizedBox(height: 32), // Aumenta o espaço após o campo de senha
                   Center(
                     child: OutlinedButton(
                       // 3. O BOTÃO AGORA USA A VARIÁVEL _loading
                       onPressed: _loading ? null : _login, // Desabilita o botão durante o loading
                       style: OutlinedButton.styleFrom().copyWith(
-                        minimumSize: MaterialStateProperty.all(const Size(150, 50)),
+                        minimumSize: WidgetStateProperty.all(const Size(150, 50)),
                       ),
                       // Mostra o indicador de progresso ou o texto
                       child: _loading
-                          ? CircularProgressIndicator(color: AppColors.borderYellow)
+                          ? const CircularProgressIndicator(color: AppColors.borderYellow)
                           : const Text('Entrar'),
                     ),
                   ),
@@ -167,9 +207,9 @@ class _TelaLoginState extends State<TelaLogin> {
               ),
             ),
           ),
-          Align(
-            alignment: const Alignment(-0.0, -0.85), // Centralizado horizontalmente, um pouco abaixo do topo
-            child: const Text(
+          const Align(
+            alignment: Alignment(-0.0, -0.85),
+            child: Text(
               'Login',
               style: AppTextStyles.screenTitle,
             ),

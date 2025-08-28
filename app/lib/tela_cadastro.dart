@@ -55,16 +55,26 @@ class _TelaCadastroState extends State<TelaCadastro> {
         return; // O finally cuidará de desativar o loading
       }
       
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      // 1. Cria o usuário no Firebase Auth
+      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      // --- ADICIONE ESTA NAVEGAÇÃO DE VOLTA ---
-      // Se o cadastro deu certo, o AuthPage já trocou a tela por baixo.
-      // Esta linha remove as telas de login/cadastro da pilha para revelar a tela principal.
+      // 2. Envia o e-mail de verificação
+      await userCredential.user?.sendEmailVerification();
+
+      // *** PASSO ADICIONAL: Desloga o usuário recém-criado ***
+      await FirebaseAuth.instance.signOut();
+
+      // 3. Mostra o pop-up de sucesso e volta para a tela de login
       if (mounted) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
+        await mostrarPopupAlerta(
+          context,
+          'Cadastro realizado com sucesso! Um link de confirmação foi enviado para o seu e-mail. Verifique sua caixa de entrada e spam.',
+          titulo: 'Verifique seu E-mail'
+        );
+        Navigator.of(context).pop(); // Volta para a tela de login
       }
 
     } on FirebaseAuthException catch (e) {
@@ -84,7 +94,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
     }
   }
 
-  // Função local para verificar a conexão, já que não estamos usando o assistente
+  // Função local para verificar a conexão
   Future<bool> _verificarConexaoFirebase() async {
     try {
       await FirebaseFirestore.instance
@@ -108,9 +118,9 @@ class _TelaCadastroState extends State<TelaCadastro> {
       body: Stack(
         children: [
           // --- ITEM 1: TÍTULO "CADASTRE-SE" POSICIONADO LIVREMENTE NO TOPO ---
-          Align(
-            alignment: const Alignment(0.0, -0.85),
-            child: const Text(
+          const Align(
+            alignment: Alignment(0.0, -0.85),
+            child: Text(
               'Cadastre-se',
               style: AppTextStyles.screenTitle,
             ),
@@ -147,7 +157,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                           minimumSize: WidgetStateProperty.all(const Size(200, 50)),
                         ),
                         child: _loading 
-                            ? CircularProgressIndicator(color: AppColors.borderYellow) 
+                            ? const CircularProgressIndicator(color: AppColors.borderYellow) 
                             : const Text('Cadastrar'),
                       ),
                     ),

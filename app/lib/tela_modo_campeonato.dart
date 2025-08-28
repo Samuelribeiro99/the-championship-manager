@@ -5,6 +5,7 @@ import 'package:app/models/modo_campeonato.dart';
 import 'package:app/theme/text_styles.dart';
 import 'tela_nome_campeonato.dart';
 import 'package:app/widgets/square_icon_button.dart';
+import 'package:app/utils/popup_utils.dart';
 
 class TelaModoCampeonato extends StatelessWidget {
   const TelaModoCampeonato({super.key});
@@ -16,6 +17,16 @@ class TelaModoCampeonato extends StatelessWidget {
         builder: (context) => TelaNomeCampeonato(modo: modo),
       ),
     );
+  }
+
+  // NOVA FUNÇÃO para mostrar o pop-up de informações
+  void _mostrarInfoModos(BuildContext context) {
+    const String mensagem = 'Pontos corridos:\n'
+        'Todos os participantes se enfrentam em turno único. O campeão é aquele que somar mais pontos ao final de todas as partidas.\n\n'
+        'Pontos corridos + Final:\n'
+        'Funciona como o modo de pontos corridos, mas com a adição de uma partida final entre os dois primeiros colocados para definir o grande campeão.';
+
+    mostrarPopupAlerta(context, mensagem, titulo: 'Modos de Jogo');
   }
 
   @override
@@ -35,6 +46,15 @@ class TelaModoCampeonato extends StatelessWidget {
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
+          // NOVO BOTÃO "SOBRE"
+          Positioned(
+            right: 20,
+            bottom: 60,
+            child: SquareIconButton(
+              svgAsset: 'assets/icons/sobre.svg',
+              onPressed: () => _mostrarInfoModos(context),
+            ),
+          ),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 120, 24, 100),
@@ -47,20 +67,13 @@ class TelaModoCampeonato extends StatelessWidget {
                     iconShape: BoxShape.rectangle,
                     onPressed: () => _selecionarModo(context, ModoCampeonato.pontosCorridosIda),
                   ),
-                  // const SizedBox(height: 80),
-                  // MenuButton(
-                  //   text: 'Pontos corridos\n+ final',
-                  //   svgAsset: 'assets/icons/pontos_final.svg',
-                  //   iconShape: BoxShape.rectangle,
-                  //   onPressed: () => _selecionarModo(context, ModoCampeonato.pontosCorridosIdaComFinal),
-                  // ),
-                  // const SizedBox(height: 80),
-                  // MenuButton(
-                  //   text: 'Torneio',
-                  //   svgAsset: 'assets/icons/torneio.svg',
-                  //   iconShape: BoxShape.rectangle,
-                  //   onPressed: () => _selecionarModo(context, ModoCampeonato.torneio),
-                  // ),
+                  const SizedBox(height: 80),
+                  MenuButton(
+                    text: 'Pontos corridos\n+ Final',
+                    svgAsset: 'assets/icons/pontos_final.svg',
+                    iconShape: BoxShape.rectangle,
+                    onPressed: () => _selecionarModo(context, ModoCampeonato.pontosCorridosIdaComFinal),
+                  ),
                 ],
               ),
             ),

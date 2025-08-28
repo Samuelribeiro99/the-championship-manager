@@ -36,9 +36,12 @@ class TelaPrincipalCampeonato extends StatefulWidget {
 class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
   late Future<void> _dadosCampeonatoFuture;
   List<JogadorNaClassificacao> _classificacao = [];
-  List<Partida> _partidas = [];
   Partida? _proximaPartida;
   String? _trofeuUrl;
+  String? _campeaoNome;
+  // NOVA VARIÁVEL DE ESTADO
+  bool _finalistasDefinidos = false;
+
 
   @override
   void initState() {
@@ -79,27 +82,67 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
     }
 
     // Carrega as partidas
-    _partidas = partidasSnapshot.docs.map((doc) {
+    final todasAsPartidas = partidasSnapshot.docs.map((doc) {
       final dados = doc.data() as Map<String, dynamic>;
       return Partida(
-        id: doc.id, // <<< Pega o ID do documento da partida
+        id: doc.id,
         rodada: dados['rodada'],
         jogador1: dados['jogador1'],
         jogador2: dados['jogador2'],
-      )..finalizada = dados['finalizada']; // Carrega o status de finalizada
+        tipo: dados['tipo'] ?? 'regular',
+      )
+        ..placar1 = dados['placar1']
+        ..placar2 = dados['placar2']
+        ..finalizada = dados['finalizada'];
     }).toList();
 
-    _proximaPartida = _encontrarProximaPartida(_partidas);
+    _proximaPartida = _encontrarProximaPartida(todasAsPartidas);
+
+    // *** NOVA LÓGICA PARA ATUALIZAR A FINAL ***
+    if (widget.modo == ModoCampeonato.pontosCorridosIdaComFinal && _proximaPartida?.tipo == 'final') {
+        final partidasRegulares = todasAsPartidas.where((p) => p.tipo == 'regular');
+        if (partidasRegulares.every((p) => p.finalizada)) {
+            _finalistasDefinidos = true;
+            if (_classificacao.length >= 2) {
+                _proximaPartida = Partida(
+                    id: _proximaPartida!.id,
+                    rodada: _proximaPartida!.rodada,
+                    jogador1: _classificacao[0].nome,
+                    jogador2: _classificacao[1].nome,
+                    tipo: 'final',
+                )
+                ..placar1 = _proximaPartida!.placar1
+                ..placar2 = _proximaPartida!.placar2
+                ..finalizada = _proximaPartida!.finalizada;
+            }
+        } else {
+            _finalistasDefinidos = false;
+        }
+    } else {
+        _finalistasDefinidos = false;
+    }
+
+
       if (dadosCampeonato.containsKey('trofeuUrl')) {
         _trofeuUrl = dadosCampeonato['trofeuUrl'];
       }
+      if (dadosCampeonato.containsKey('campeaoNome')) {
+        _campeaoNome = dadosCampeonato['campeaoNome'];
+      }
   }
 
+  // MUDANÇA: A função agora prioriza partidas regulares
   Partida? _encontrarProximaPartida(List<Partida> partidas) {
     try {
-      return partidas.firstWhere((p) => !p.finalizada);
+      // Tenta encontrar a próxima partida regular não finalizada
+      return partidas.firstWhere((p) => p.tipo == 'regular' && !p.finalizada);
     } catch (e) {
-      return null; // Nenhuma partida encontrada, o campeonato acabou
+      try {
+        // Se não houver mais partidas regulares, procura pela final não finalizada
+        return partidas.firstWhere((p) => p.tipo == 'final' && !p.finalizada);
+      } catch (e) {
+        return null; // Nenhuma partida encontrada, o campeonato acabou
+      }
     }
   }
 
@@ -169,8 +212,21 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
   void _mostrarInfoTabela() {
     showDialog(context: context, builder: (context) => AlertDialog(
       title: const Text('Legenda da Tabela'),
-      content: const Text('P: Pontos\nJ: Jogos\nV: Vitórias\nE: Empates\nD: Derrotas\nSG: Saldo de gols\nGP: Gols pró\nGC: Gols contra\nCritério de desempate: P > V > SG > GP > Confronto direto > Sorteio\nO modo de pontos corridos é com partidas somente ida\nÉ possível arrastar a tabela para todos os lados. Experimente!'),
-      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Ok'))],
+      content: const Text(
+        'P: Pontos\n'
+        'J: Jogos\n'
+        'V: Vitórias\n'
+        'E: Empates\n'
+        'D: Derrotas\n'
+        'SG: Saldo de gols\n'
+        'GP: Gols pró\n'
+        'GC: Gols contra\n\n'
+        'Critério de desempate: P > V > SG > GP > Confronto direto > Sorteio\n\n'
+        'Outras informações:\n'
+        'O modo de pontos corridos é com partidas somente ida.\n'
+        'É possível arrastar a tabela para todos os lados. Experimente!'
+        ),
+      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK'))],
     ));
   }
 
@@ -186,6 +242,9 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
           return BackgroundScaffold(body: Center(child: Text('Erro ao carregar dados: ${snapshot.error}')));
         }
         
+        // *** NOVA VARIÁVEL PARA SIMPLIFICAR O BUILD ***
+        final bool isFinal = _proximaPartida?.tipo == 'final';
+
         return BackgroundScaffold(
           body: Stack(
             children: [
@@ -202,84 +261,86 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                   padding: const EdgeInsets.fromLTRB(16, 100, 16, 130), // Espaço para título e botões
                   child: Column(
                     children: [
+                      // *** LÓGICA DO TÍTULO ATUALIZADA ***
                       if (_proximaPartida != null)
-                          // Se AINDA HÁ uma próxima partida, mostra este texto
-                          Text(
-                            'Próxima partida',
-                            style: AppTextStyles.screenTitle.copyWith(fontSize: 18),
-                          )
-                        else
-                          // Se NÃO HÁ mais partidas, mostra este texto
-                          Text(
-                            'Campeão', // Ou 'Campeonato Finalizado', etc.
-                            style: AppTextStyles.screenTitle.copyWith(fontSize: 18),
-                          ),
-                        if (_proximaPartida != null)
-                          SelectionButton(
-                            svgAsset: 'assets/icons/vai.svg',
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => TelaInserirResultado(
-                                    campeonatoId: widget.campeonatoId,
-                                    partida: _proximaPartida!,
-                                  ),
-                                ),
-                              ).then((_) {
-                                setState(() {
-                                  _dadosCampeonatoFuture = _carregarDadosDoCampeonato();
-                                });
-                              });
-                            },
-                            child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              // Jogador 1 (à esquerda, flexível)
-                              Expanded(
-                                child: Text(
-                                  _proximaPartida!.jogador1,
-                                  textAlign: TextAlign.left,
-                                  overflow: TextOverflow.ellipsis, // Adiciona "..." se for muito longo
-                                  maxLines: 1,
-                                  style: AppTextStyles.screenTitle.copyWith(fontSize: 18), // Reutilizando um estilo
-                                ),
-                              ),
-                              // O "X" no meio
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                child: SvgPicture.asset(
-                                  'assets/icons/x_vs.svg',
-                                  height: 30,
-                                  colorFilter: const ColorFilter.mode(
-                                    AppColors.borderYellow,
-                                    BlendMode.srcIn,
-                                  ),
-                                ),
-                              ),
-                              // Jogador 2 (à direita, flexível)
-                              Expanded(
-                                child: Text(
-                                  _proximaPartida!.jogador2,
-                                  textAlign: TextAlign.right,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  style: AppTextStyles.screenTitle.copyWith(fontSize: 18),
-                                ),
-                              ),
-                            ],
-                          ),
+                        Text(
+                          // Se for a final, mostra "Final", senão "Próxima partida"
+                          isFinal ? 'Final' : 'Próxima partida',
+                          style: AppTextStyles.screenTitle.copyWith(fontSize: 18),
                         )
                       else
+                        Text(
+                          'Campeão',
+                          style: AppTextStyles.screenTitle.copyWith(fontSize: 18),
+                        ),
+
+                      // *** LÓGICA DO BOTÃO ATUALIZADA ***
+                      if (_proximaPartida != null)
                         SelectionButton(
-                          text: _classificacao.isNotEmpty ? _classificacao[0].nome : "N/D",
+                          svgAsset: 'assets/icons/vai.svg',
+                          onPressed: () {
+                            // A final só é jogável se os finalistas estiverem definidos
+                            if (isFinal && !_finalistasDefinidos) return;
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TelaInserirResultado(
+                                  campeonatoId: widget.campeonatoId,
+                                  partida: _proximaPartida!,
+                                ),
+                              ),
+                            ).then((_) {
+                              setState(() {
+                                _dadosCampeonatoFuture = _carregarDadosDoCampeonato();
+                              });
+                            });
+                          },
+                          child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _proximaPartida!.jogador1,
+                                textAlign: TextAlign.left,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: AppTextStyles.screenTitle.copyWith(fontSize: 18),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                              child: SvgPicture.asset(
+                                'assets/icons/x_vs.svg',
+                                height: 30,
+                                colorFilter: const ColorFilter.mode(
+                                  AppColors.borderYellow,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                _proximaPartida!.jogador2,
+                                textAlign: TextAlign.right,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: AppTextStyles.screenTitle.copyWith(fontSize: 18),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      else
+                        SelectionButton(
+                          text: _campeaoNome ?? "N/D",
                           svgAsset: 'assets/icons/trofeu.svg',
                           onPressed: () {
-                            if (_classificacao.isNotEmpty && _trofeuUrl != null) {
+                            if (_campeaoNome != null && _trofeuUrl != null) {
                               Navigator.push(context, MaterialPageRoute(
                                 builder: (context) => TelaCampeao(
                                   nomeDoCampeonato: widget.nomeDoCampeonato,
-                                  nomeDoCampeao: _classificacao[0].nome,
+                                  nomeDoCampeao: _campeaoNome!,
                                   trofeuUrl: _trofeuUrl!,
                                 ),
                               ));
@@ -290,26 +351,25 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                       
                       const SizedBox(height: 12),
 
-                      // --- TABELA DE CLASSIFICAÇÃO ---
+                      // --- TABELA DE CLASSIFICAÇÃO (sem alterações) ---
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
                             border: Border.all(color: AppColors.borderYellow, width: 5),
                             borderRadius: BorderRadius.circular(8.0),
                           ),
-                          child: ClipRRect( // Para que o conteúdo não vaze das bordas arredondadas
+                          child: ClipRRect(
                             borderRadius: BorderRadius.circular(2.0),
-                            // Scroll Horizontal
                             child: SingleChildScrollView(
-                              child: SingleChildScrollView( // Este é o que você já tinha (horizontal)
+                              child: SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: DataTable(
                                   border: TableBorder.all(
-                                    width: 2.0, // Grossura das linhas internas finas
-                                    color: AppColors.borderYellow, // Cor das linhas internas
+                                    width: 2.0,
+                                    color: AppColors.borderYellow,
                                   ),
                                   headingRowColor: WidgetStateProperty.all(
-                                    AppColors.borderYellow.withOpacity(0.2), // Cor de destaque para o cabeçalho
+                                    AppColors.borderYellow.withOpacity(0.2),
                                   ),
                                   dividerThickness: 0,
                                   
@@ -318,14 +378,13 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                                   columns: [
                                     DataColumn(
                                       label: Container(
-                                        // Define os limites de largura para a coluna
                                         constraints: const BoxConstraints(
-                                          minWidth: 80, // Largura MÍNIMA que a coluna terá
-                                          maxWidth: 150, // Largura MÁXIMA que a coluna pode atingir
+                                          minWidth: 80,
+                                          maxWidth: 150,
                                         ),
                                         child: const Padding(
                                           padding: EdgeInsets.symmetric(horizontal: 8.0),
-                                          child: Text('Jogador', style: TextStyle(fontWeight: FontWeight.bold)),
+                                          child: Text('Participante', style: TextStyle(fontWeight: FontWeight.bold)),
                                         ),
                                       ),
                                     ),
@@ -342,7 +401,6 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                                     cells: [
                                       DataCell(
                                         Container(
-                                          // Use EXATAMENTE os mesmos constraints do cabeçalho
                                           constraints: const BoxConstraints(
                                             minWidth: 80,
                                             maxWidth: 150,
@@ -374,7 +432,7 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                 ),
               ),
               
-              // --- BOTÕES DE RODAPÉ ---
+              // --- BOTÕES DE RODAPÉ (sem alterações) ---
               Positioned(
                 bottom: 60,
                 left: 16,

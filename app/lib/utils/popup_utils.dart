@@ -6,16 +6,17 @@ import 'package:flutter/material.dart';
 ///
 /// [context] é o BuildContext da tela que está chamando o pop-up.
 /// [mensagem] é o texto que será exibido no corpo do alerta.
-Future<void> mostrarPopupAlerta(BuildContext context, String mensagem) {
+/// [titulo] é o título opcional do pop-up. O padrão é "Atenção".
+Future<void> mostrarPopupAlerta(BuildContext context, String mensagem, {String titulo = 'Atenção'}) {
   return showDialog<void>(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Text('Atenção'),
+        title: Text(titulo),
         content: Text(mensagem),
         actions: <Widget>[
           TextButton(
-            child: const Text('Ok'),
+            child: const Text('OK'),
             onPressed: () {
               Navigator.of(context).pop(); // Fecha o pop-up
             },

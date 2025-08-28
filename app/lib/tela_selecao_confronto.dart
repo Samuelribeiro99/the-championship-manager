@@ -1,23 +1,23 @@
+import 'package:app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/widgets/background_scaffold.dart';
 import 'package:app/widgets/square_icon_button.dart';
-import 'package:app/widgets/selectable_player_button.dart';
 import 'package:app/theme/text_styles.dart';
+import 'tela_confronto_direto.dart';
 
-class TelaJogadoresExistentes extends StatefulWidget {
-  final List<String> jogadoresJaAdicionados;
 
-  const TelaJogadoresExistentes({super.key, required this.jogadoresJaAdicionados});
+class TelaSelecaoConfronto extends StatefulWidget {
+  const TelaSelecaoConfronto({super.key});
 
   @override
-  State<TelaJogadoresExistentes> createState() => _TelaJogadoresExistentesState();
+  State<TelaSelecaoConfronto> createState() => _TelaSelecaoConfrontoState();
 }
 
-class _TelaJogadoresExistentesState extends State<TelaJogadoresExistentes> {
+class _TelaSelecaoConfrontoState extends State<TelaSelecaoConfronto> {
   late Future<List<String>> _jogadoresUnicosFuture;
-  List<String> _jogadoresSelecionados = [];
+  final List<String> _jogadoresSelecionados = [];
 
   @override
   void initState() {
@@ -36,7 +36,6 @@ class _TelaJogadoresExistentesState extends State<TelaJogadoresExistentes> {
 
     if (snapshot.docs.isEmpty) return [];
 
-    // Usa um Set para garantir que cada jogador apareça apenas uma vez
     final Set<String> jogadoresUnicos = {};
     for (var doc in snapshot.docs) {
       final dados = doc.data();
@@ -45,7 +44,6 @@ class _TelaJogadoresExistentesState extends State<TelaJogadoresExistentes> {
         jogadoresUnicos.addAll(jogadoresDoCampeonato);
       }
     }
-
     return jogadoresUnicos.toList()..sort((a,b) => a.toLowerCase().compareTo(b.toLowerCase()));
   }
 
@@ -54,23 +52,32 @@ class _TelaJogadoresExistentesState extends State<TelaJogadoresExistentes> {
       if (_jogadoresSelecionados.contains(nome)) {
         _jogadoresSelecionados.remove(nome);
       } else {
-        _jogadoresSelecionados.add(nome);
+        if (_jogadoresSelecionados.length < 2) {
+          _jogadoresSelecionados.add(nome);
+        } else {
+          // Se já tem 2, remove o primeiro e adiciona o novo
+          _jogadoresSelecionados.removeAt(0);
+          _jogadoresSelecionados.add(nome);
+        }
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    // O botão de confirmar só fica ativo quando 2 jogadores são selecionados
+    final bool isConfirmarAtivo = _jogadoresSelecionados.length == 2;
+
     return BackgroundScaffold(
       body: Stack(
         children: [
           Align(
             alignment: const Alignment(0.0, -0.85),
-            child: Text('Participantes existentes', style: AppTextStyles.screenTitle),
+            child: Text('Selecionar confronto', style: AppTextStyles.screenTitle, textAlign: TextAlign.center),
           ),
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 120, 24, 140),
+              padding: const EdgeInsets.fromLTRB(24, 120, 24, 130),
               child: FutureBuilder<List<String>>(
                 future: _jogadoresUnicosFuture,
                 builder: (context, snapshot) {
@@ -78,39 +85,34 @@ class _TelaJogadoresExistentesState extends State<TelaJogadoresExistentes> {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text(
-                      'Nenhum participante encontrado em campeonatos anteriores.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 18, color: Colors.white70),
-                    ));
+                    return const Center(
+                      child: Text(
+                        'Nenhum jogador encontrado.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18, color: Colors.white70),
+                      )
+                    );
                   }
 
                   final todosJogadores = snapshot.data!;
-                  // Filtra os jogadores que já foram adicionados na tela anterior
-                  final jogadoresParaExibir = todosJogadores
-                      .where((j) => !widget.jogadoresJaAdicionados.any((ja) => ja.toLowerCase() == j.toLowerCase()))
-                      .toList();
 
-                  if (jogadoresParaExibir.isEmpty) {
-                    return const Center(child: Text(
-                      'Todos os jogadores existentes já foram adicionados.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 18, color: Colors.white70),
-                    ));
-                  }
-
-                  return ListView.builder(
-                    itemCount: jogadoresParaExibir.length,
+                  return GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 2.5,
+                    ),
+                    itemCount: todosJogadores.length,
                     itemBuilder: (context, index) {
-                      final nomeJogador = jogadoresParaExibir[index];
+                      final nomeJogador = todosJogadores[index];
                       final isSelected = _jogadoresSelecionados.contains(nomeJogador);
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: SelectablePlayerButton(
-                          text: nomeJogador,
-                          isSelected: isSelected,
-                          onPressed: () => _toggleSelecaoJogador(nomeJogador),
+                      return OutlinedButton(
+                        onPressed: () => _toggleSelecaoJogador(nomeJogador),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: isSelected ? AppColors.borderYellow : Colors.transparent,
                         ),
+                        child: Text(nomeJogador, overflow: TextOverflow.ellipsis),
                       );
                     },
                   );
@@ -123,7 +125,7 @@ class _TelaJogadoresExistentesState extends State<TelaJogadoresExistentes> {
             bottom: 60,
             child: SquareIconButton(
               svgAsset: 'assets/icons/voltar.svg',
-              onPressed: () => Navigator.of(context).pop(), // Volta sem retornar nada
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ),
           Positioned(
@@ -131,10 +133,15 @@ class _TelaJogadoresExistentesState extends State<TelaJogadoresExistentes> {
             bottom: 60,
             child: SquareIconButton(
               svgAsset: 'assets/icons/check.svg',
-              onPressed: () {
-                // Volta para a tela anterior, retornando a lista de jogadores selecionados
-                Navigator.of(context).pop(_jogadoresSelecionados);
-              },
+              // Desabilita o botão se não tiver 2 jogadores selecionados
+              onPressed: isConfirmarAtivo ? () {
+                Navigator.pushReplacement(context, MaterialPageRoute(
+                  builder: (context) => TelaConfrontoDireto(
+                    jogador1: _jogadoresSelecionados[0],
+                    jogador2: _jogadoresSelecionados[1],
+                  ),
+                ));
+              } : null,
             ),
           ),
         ],
