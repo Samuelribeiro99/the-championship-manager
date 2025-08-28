@@ -53,7 +53,7 @@ class TelaSobre extends StatelessWidget {
                               children: [
                                 // --- O conteúdo que você já tinha, agora aqui dentro ---
                                 Text(
-                                  'Nossa Missão',
+                                  'Nossa missão',
                                   style: AppTextStyles.screenTitle.copyWith(fontSize: 22),
                                 ),
                                 const SizedBox(height: 8),
@@ -63,6 +63,11 @@ class TelaSobre extends StatelessWidget {
                                   textAlign: TextAlign.justify,
                                 ),
                                 const SizedBox(height: 32),
+                                Text(
+                                  'A inspiração',
+                                  style: AppTextStyles.screenTitle.copyWith(fontSize: 22),
+                                ),
+                                const SizedBox(height: 8),
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(12.0),
                                   child: Image.asset(
@@ -71,11 +76,6 @@ class TelaSobre extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 32),
-                                Text(
-                                  'A Inspiração',
-                                  style: AppTextStyles.screenTitle.copyWith(fontSize: 22),
-                                ),
-                                const SizedBox(height: 8),
                                 const Text(
                                   'A ideia para este app nasceu de momentos marcantes da minha juventude. Em meio a partidas acirradas de FIFA, sentimos a falta de uma ferramenta prática para gerenciar nossos campeonatos. Este aplicativo é uma homenagem a todas as amizades cultivadas e fortalecidas por momentos divididos praticando e competindo um esporte, seja ele real ou virtual.',
                                   style: TextStyle(fontSize: 16, color: Colors.white70, height: 1.5),

@@ -82,7 +82,13 @@ class _TelaHallDeCampeoesState extends State<TelaHallDeCampeoes> {
                     return Center(child: Text('Erro ao carregar dados: ${snapshot.error}'));
                   }
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('Nenhum campeão definido ainda.'));
+                    return const Center(
+                      child: Text(
+                        'Nenhum campeão definido ainda.\nFinalize um campeonato para começar.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18, color: Colors.white70),
+                      )
+                    );
                   }
 
                   final contagemTitulos = snapshot.data!;

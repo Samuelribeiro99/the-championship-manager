@@ -23,7 +23,7 @@ class TelaModoCampeonato extends StatelessWidget {
   void _mostrarInfoModos(BuildContext context) {
     const String mensagem = 'Pontos corridos:\n'
         'Todos os participantes se enfrentam em turno único. O campeão é aquele que somar mais pontos ao final de todas as partidas.\n\n'
-        'Pontos corridos + final:\n'
+        'Pontos corridos + Final:\n'
         'Funciona como o modo de pontos corridos, mas com a adição de uma partida final entre os dois primeiros colocados para definir o grande campeão.';
 
     mostrarPopupAlerta(context, mensagem, titulo: 'Modos de Jogo');
@@ -69,7 +69,7 @@ class TelaModoCampeonato extends StatelessWidget {
                   ),
                   const SizedBox(height: 80),
                   MenuButton(
-                    text: 'Pontos corridos\n+ final',
+                    text: 'Pontos corridos\n+ Final',
                     svgAsset: 'assets/icons/pontos_final.svg',
                     iconShape: BoxShape.rectangle,
                     onPressed: () => _selecionarModo(context, ModoCampeonato.pontosCorridosIdaComFinal),

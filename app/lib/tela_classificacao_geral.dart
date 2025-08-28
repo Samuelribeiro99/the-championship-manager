@@ -60,6 +60,52 @@ class _TelaClassificacaoGeralState extends State<TelaClassificacaoGeral> {
           jogadorStats.totalGolsContra += (dadosJogador['golsContra'] as num? ?? 0).toInt();
         }
       }
+
+      // *** NOVA LÓGICA PARA CONTAR FINAIS ***
+      final partidasSnapshot = await doc.reference.collection('partidas').where('tipo', isEqualTo: 'final').get();
+      for (var partidaDoc in partidasSnapshot.docs) {
+        final dadosPartida = partidaDoc.data();
+        if (dadosPartida['finalizada'] == true) {
+            final j1 = dadosPartida['jogador1'] as String;
+            final j2 = dadosPartida['jogador2'] as String;
+            final p1 = (dadosPartida['placar1'] as num).toInt();
+            final p2 = (dadosPartida['placar2'] as num).toInt();
+
+            final statsJ1 = statsMap[j1];
+            final statsJ2 = statsMap[j2];
+
+            if (statsJ1 != null && statsJ2 != null) {
+                statsJ1.totalFinais++;
+                statsJ2.totalFinais++;
+
+                statsJ1.totalGolsPro += p1;
+                statsJ1.totalGolsContra += p2;
+                statsJ2.totalGolsPro += p2;
+                statsJ2.totalGolsContra += p1;
+
+                String vencedor;
+                if (p1 > p2) {
+                    vencedor = j1;
+                } else if (p2 > p1) {
+                    vencedor = j2;
+                } else {
+                    final pen1 = (dadosPartida['placar1Penaltis'] as num?)?.toInt() ?? 0;
+                    final pen2 = (dadosPartida['placar2Penaltis'] as num?)?.toInt() ?? 0;
+                    vencedor = pen1 > pen2 ? j1 : j2;
+                }
+
+                if (vencedor == j1) {
+                    statsJ1.totalVitorias++;
+                    statsJ1.totalPontos += 3; // Adiciona 3 pontos para a vitória na final (para o cálculo do APR)
+                    statsJ2.totalDerrotas++;
+                } else {
+                    statsJ2.totalVitorias++;
+                    statsJ2.totalPontos += 3; // Adiciona 3 pontos para a vitória na final (para o cálculo do APR)
+                    statsJ1.totalDerrotas++;
+                }
+            }
+        }
+      }
     }
 
     final listaFinal = statsMap.values.toList();
@@ -82,17 +128,18 @@ class _TelaClassificacaoGeralState extends State<TelaClassificacaoGeral> {
     mostrarPopupAlerta(context, 
       'A classificação geral agrega os dados de todos os campeonatos finalizados.\n\n'
       'APR: Aproveitamento (%)\n'
-      'F: Finais Disputadas\n'
+      'F: Finais disputadas\n'
       'J: Jogos (fase de pontos + finais)\n'
       'V: Vitórias\n'
       'E: Empates\n'
       'D: Derrotas\n'
-      'SG: Saldo de Gols\n'
-      'GP: Gols Pró\n'
-      'GC: Gols Contra\n'
-      'MGP: Média de Gols Pró\n'
-      'MGC: Média de Gols Contra\n\n'
-      'Critérios de Desempate: APR > V > SG > GP'
+      'F: Finais Disputadas\n'
+      'SG: Saldo de gols\n'
+      'GP: Gols pró\n'
+      'GC: Gols contra\n'
+      'MGP: Média de cols pró\n'
+      'MGC: Média de gols contra\n\n'
+      'Critérios de desempate: APR > V > SG > GP'
     );
   }
 
@@ -118,7 +165,13 @@ class _TelaClassificacaoGeralState extends State<TelaClassificacaoGeral> {
                     return Center(child: Text('Erro ao carregar estatísticas: ${snapshot.error}'));
                   }
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('Nenhuma estatística encontrada.\nFinalize um campeonato para começar.', textAlign: TextAlign.center));
+                    return const Center(
+                      child: Text(
+                        'Nenhuma estatística encontrada.\nFinalize um campeonato para começar.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18, color: Colors.white70),
+                      )
+                    );
                   }
 
                   final estatisticas = snapshot.data!;

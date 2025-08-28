@@ -417,8 +417,9 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
             nomeCampeao = widget.partida.jogador1;
           } else if (placar2 > placar1) {
             nomeCampeao = widget.partida.jogador2;
-          } else { // Empate, decidido nos pênaltis
-            nomeCampeao = (placar1Penaltis! > placar2Penaltis!) ? widget.partida.jogador1 : widget.partida.jogador2;
+          } else { 
+            // *** MUDANÇA AQUI: Adiciona verificação de nulo para segurança ***
+            nomeCampeao = ((placar1Penaltis ?? 0) > (placar2Penaltis ?? 0)) ? widget.partida.jogador1 : widget.partida.jogador2;
           }
         } else { // Pontos corridos simples
           nomeCampeao = classificacaoAtual[0].nome;

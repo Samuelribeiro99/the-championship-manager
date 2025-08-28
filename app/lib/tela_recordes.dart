@@ -137,11 +137,29 @@ class _TelaRecordesState extends State<TelaRecordes> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  if (snapshot.hasError || !snapshot.hasData) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Erro: ${snapshot.error}'));
+                  }
+                  if (!snapshot.hasData) {
                     return const Center(child: Text('Não foi possível carregar os recordes.'));
                   }
 
                   final recordes = snapshot.data!;
+                  
+                  // *** NOVA VERIFICAÇÃO DE CONTEÚDO VAZIO ***
+                  if (recordes.maiorGoleada == null &&
+                      recordes.melhorAtaque == null &&
+                      recordes.maiorCampeao == null &&
+                      recordes.maiorVitorioso == null &&
+                      recordes.melhorDefesa == null) {
+                    return const Center(
+                      child: Text(
+                        'Nenhum campeonato finalizado. \nFinalize um campeonato para começar.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18, color: Colors.white70),
+                      ),
+                    );
+                  }
 
                   return SingleChildScrollView(
                     child: Column(
