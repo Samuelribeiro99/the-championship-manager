@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/models/estatisticas_models.dart';
+import 'package:app/models/modo_campeonato.dart';
 import 'package:app/widgets/background_scaffold.dart';
 import 'package:app/widgets/square_icon_button.dart';
 import 'package:app/widgets/record_card_widget.dart';
@@ -55,13 +56,14 @@ class _TelaRecordesState extends State<TelaRecordes> {
         }
       }
 
-      // Agregação de Estatísticas Gerais
+      // Agregação de Estatísticas da fase de pontos
       if (dadosCamp.containsKey('classificacao')) {
         for (var dadosJogador in (dadosCamp['classificacao'] as List)) {
           final nome = dadosJogador['nome'] as String;
           statsGerais.putIfAbsent(nome, () => EstatisticasJogador(nome: nome));
           final jogadorStats = statsGerais[nome]!;
           jogadorStats.totalVitorias += (dadosJogador['vitorias'] as num? ?? 0).toInt();
+          jogadorStats.totalDerrotas += (dadosJogador['derrotas'] as num? ?? 0).toInt();
           jogadorStats.totalGolsPro += (dadosJogador['golsPro'] as num? ?? 0).toInt();
           jogadorStats.totalGolsContra += (dadosJogador['golsContra'] as num? ?? 0).toInt();
         }
@@ -69,6 +71,61 @@ class _TelaRecordesState extends State<TelaRecordes> {
 
       // Busca de Maior Goleada (requer ler as partidas)
       final partidasSnapshot = await campDoc.reference.collection('partidas').get();
+
+      // CORREÇÃO: Adiciona os stats da final, se houver
+      final modo = ModoCampeonato.values.firstWhere(
+        (e) => e.toString() == dadosCamp['modo'],
+        orElse: () => ModoCampeonato.pontosCorridosIda,
+      );
+
+      if (modo == ModoCampeonato.pontosCorridosIdaComFinal) {
+        try {
+          final finalDoc = partidasSnapshot.docs.firstWhere((doc) => doc.data()['tipo'] == 'final');
+          final dadosPartida = finalDoc.data();
+
+          if (dadosPartida['finalizada'] == true) {
+              final j1 = dadosPartida['jogador1'] as String;
+              final j2 = dadosPartida['jogador2'] as String;
+              final p1 = (dadosPartida['placar1'] as num).toInt();
+              final p2 = (dadosPartida['placar2'] as num).toInt();
+
+              final statsJ1 = statsGerais[j1];
+              final statsJ2 = statsGerais[j2];
+
+              if (statsJ1 != null && statsJ2 != null) {
+                  // Adiciona os gols da final
+                  statsJ1.totalGolsPro += p1;
+                  statsJ1.totalGolsContra += p2;
+                  statsJ2.totalGolsPro += p2;
+                  statsJ2.totalGolsContra += p1;
+
+                  // Determina o vencedor da final e adiciona vitória/derrota
+                  String vencedor;
+                  if (p1 > p2) {
+                      vencedor = j1;
+                  } else if (p2 > p1) {
+                      vencedor = j2;
+                  } else {
+                      final pen1 = (dadosPartida['placar1Penaltis'] as num?)?.toInt() ?? 0;
+                      final pen2 = (dadosPartida['placar2Penaltis'] as num?)?.toInt() ?? 0;
+                      vencedor = pen1 > pen2 ? j1 : j2;
+                  }
+
+                  if (vencedor == j1) {
+                      statsJ1.totalVitorias++;
+                      statsJ2.totalDerrotas++;
+                  } else {
+                      statsJ2.totalVitorias++;
+                      statsJ1.totalDerrotas++;
+                  }
+              }
+          }
+        } catch (e) {
+            // Nenhuma final encontrada neste campeonato, ignora.
+        }
+      }
+
+      // Busca de Maior Goleada (requer ler as partidas)
       for (var partidaDoc in partidasSnapshot.docs) {
         final dadosPartida = partidaDoc.data();
         if (dadosPartida['finalizada'] == true) {
@@ -184,7 +241,7 @@ class _TelaRecordesState extends State<TelaRecordes> {
                                     Padding(
                                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
                                       child: SvgPicture.asset(
-                                        'assets/icons/x_vs.svg', // Use o seu SVG aqui
+                                        'assets/icons/x_vs.svg',
                                         height: 26,
                                         colorFilter: const ColorFilter.mode(AppColors.borderYellow, BlendMode.srcIn),
                                       ),
@@ -266,9 +323,8 @@ class _TelaRecordesState extends State<TelaRecordes> {
             right: 20,
             bottom: 60,
             child: SquareIconButton(
-              svgAsset: 'assets/icons/pato.svg', // Ícone do Pato
+              svgAsset: 'assets/icons/pato.svg',
               onPressed: () {
-                // Navega para a tela de Patos
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const TelaPatos()));
               },
             ),
