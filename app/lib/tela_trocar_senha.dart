@@ -39,9 +39,9 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
     super.dispose();
   }
 
-  // FUNÇÃO DE NAVEGAÇÃO PARA A TELA DE RESET
-  void _irParaTelaResetSenha() {
-    Navigator.of(context).push(
+  void _irParaTelaReset() {
+    Navigator.push(
+      context,
       MaterialPageRoute(builder: (context) => const TelaResetSenha()),
     );
   }
@@ -83,7 +83,7 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
 
           if (mounted) {
             Navigator.of(context).pop(); // Fecha o loading
-            
+
             // USA 'await' PARA ESPERAR O USUÁRIO FECHAR O POP-UP
             await mostrarPopupAlerta(context, 'Senha alterada com sucesso!');
             
@@ -104,11 +104,29 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
             mensagemErro = 'A nova senha é muito fraca.';
           } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
             mensagemErro = 'A senha antiga está incorreta.';
+            if (mounted) {
+              // --- AQUI ESTÁ A MUDANÇA ---
+              mostrarPopupAlerta(
+                context,
+                mensagemErro,
+                acoesExtras: [
+                  TextButton(
+                    child: const Text('Esqueceu a senha?'),
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Fecha o alerta
+                      _irParaTelaReset();
+                    },
+                  ),
+                ],
+              );
+            }
+          } else if (e.code == 'weak-password') {
+            mensagemErro = 'A nova senha é muito fraca.';
+            if (mounted) mostrarPopupAlerta(context, mensagemErro);
           } else {
-            mensagemErro = e.message ?? mensagemErro; // Usa a mensagem do Firebase se houver
+            mensagemErro = e.message ?? mensagemErro;
+            if (mounted) mostrarPopupAlerta(context, mensagemErro);
           }
-          
-          if (mounted) mostrarPopupAlerta(context, mensagemErro);
         }
       },
     );
@@ -144,11 +162,8 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
                         // *** LÓGICA CONDICIONAL DO SUFIXO ***
                         suffixIcon: _senhaAntigaController.text.isEmpty
                             ? TextButton(
-                                onPressed: _irParaTelaResetSenha,
-                                child: const Text(
-                                  'Esqueceu?',
-                                  style: TextStyle(color: Colors.white70),
-                                ),
+                                onPressed: _irParaTelaReset,
+                                child: const Text('Esqueceu?'),
                               )
                             : IconButton(
                                 icon: Icon(
@@ -174,7 +189,7 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
                     const SizedBox(height: 12),
                     Center(
                       child: OutlinedButton(
-                        onPressed: _salvarNovaSenha, 
+                        onPressed: _salvarNovaSenha,
                         style: OutlinedButton.styleFrom().copyWith(
                           minimumSize: WidgetStateProperty.all(const Size(200, 50)),
                         ),

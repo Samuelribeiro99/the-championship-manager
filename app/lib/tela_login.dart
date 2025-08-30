@@ -18,7 +18,7 @@ class TelaLogin extends StatefulWidget {
 class _TelaLoginState extends State<TelaLogin> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _loading = false; 
+  bool _loading = false;
   bool _senhaObscura = true;
 
   @override
@@ -37,17 +37,26 @@ class _TelaLoginState extends State<TelaLogin> {
     super.dispose();
   }
 
+  Future<void> _irParaTelaReset() {
+    return Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const TelaResetSenha()),
+    );
+  }
+
   // 2. A FUNÇÃO _login VOLTA A TER A LÓGICA DE LOADING E TRY/CATCH
   Future<void> _login() async {
     FocusScope.of(context).unfocus();
-    
+
     if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
       mostrarPopupAlerta(context, 'Por favor, preencha o e-mail e a senha.');
       return;
     }
 
     // Ativa o loading
-    setState(() { _loading = true; });
+    setState(() {
+      _loading = true;
+    });
 
     try {
       // Verificação de internet antes de tentar o login
@@ -56,7 +65,7 @@ class _TelaLoginState extends State<TelaLogin> {
         mostrarPopupAlerta(context, 'Não foi possível se conectar ao nosso serviço. Verifique sua conexão com a internet.');
         return;
       }
-      
+
       final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
@@ -82,14 +91,33 @@ class _TelaLoginState extends State<TelaLogin> {
       String mensagemErro = 'Ocorreu um erro ao fazer login.';
       if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
         mensagemErro = 'E-mail ou senha inválidos.';
+        if (mounted) {
+          // --- AQUI ESTÁ A MUDANÇA ---
+          // Usa a nova função de pop-up com uma ação extra
+          mostrarPopupAlerta(
+            context,
+            mensagemErro,
+            acoesExtras: [
+              TextButton(
+                child: const Text('Esqueceu a senha?'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Fecha o alerta
+                  _irParaTelaReset(); // Vai para a tela de reset
+                },
+              ),
+            ],
+          );
+        }
       } else {
         mensagemErro = e.message ?? mensagemErro;
+        if (mounted) mostrarPopupAlerta(context, mensagemErro);
       }
-      if (mounted) mostrarPopupAlerta(context, mensagemErro);
     } finally {
       // Garante que o loading seja desativado, não importa o que aconteça
       if (mounted) {
-        setState(() { _loading = false; });
+        setState(() {
+          _loading = false;
+        });
       }
     }
   }
@@ -112,13 +140,6 @@ class _TelaLoginState extends State<TelaLogin> {
   void _irParaTelaCadastro() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const TelaCadastro()),
-    );
-  }
-  
-  // NOVA FUNÇÃO PARA NAVEGAR
-  void _irParaTelaResetSenha() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const TelaResetSenha()),
     );
   }
 
@@ -148,11 +169,8 @@ class _TelaLoginState extends State<TelaLogin> {
                       // *** LÓGICA CONDICIONAL DO SUFIXO ***
                       suffixIcon: _passwordController.text.isEmpty
                           ? TextButton(
-                              onPressed: _irParaTelaResetSenha,
-                              child: const Text(
-                                'Esqueceu?',
-                                style: TextStyle(color: Colors.white70),
-                              ),
+                              onPressed: _irParaTelaReset,
+                              child: const Text('Esqueceu?'),
                             )
                           : IconButton(
                               icon: Icon(
@@ -191,7 +209,7 @@ class _TelaLoginState extends State<TelaLogin> {
                       // Talvez uma borda um pouco mais fina para ser mais sutil
                       side: WidgetStateProperty.all(
                         const BorderSide(
-                          width: 5.0, 
+                          width: 5.0,
                           color: AppColors.borderYellow,
                         ),
                       ),
