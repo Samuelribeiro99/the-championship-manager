@@ -44,11 +44,15 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
     // Busca o modo do campeonato para lógicas futuras
     _fetchModoCampeonato();
 
-    // *** NOVA LÓGICA AQUI ***
-    // Se for uma final que ainda não foi jogada (placar é nulo),
-    // o placar é implicitamente 0 a 0, então devemos mostrar os pênaltis.
-    if (widget.partida.tipo == 'final' && widget.partida.placar1 == null) {
-      _mostrarPenaltis = true;
+    // CORREÇÃO: Mostrar pênaltis se for uma final empatada (ou ainda não jogada)
+    if (widget.partida.tipo == 'final') {
+      final bool isDraw = widget.partida.finalizada && widget.partida.placar1 == widget.partida.placar2;
+      final bool isNotPlayed = !widget.partida.finalizada && widget.partida.placar1 == null;
+      if (isDraw || isNotPlayed) {
+        setState(() {
+          _mostrarPenaltis = true;
+        });
+      }
     }
   }
 
@@ -87,16 +91,25 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
     final placar2 = _placar2Key.currentState?.placarAtual;
     if (placar1 == null || placar2 == null) return;
 
-    // Validação de pênaltis
+    // CORREÇÃO: Validação para não permitir finalizar uma final com empate sem pênaltis
+    if (widget.partida.tipo == 'final' && placar1 == placar2) {
+      final placar1Penaltis = _placar1PenaltisKey.currentState?.placarAtual;
+      final placar2Penaltis = _placar2PenaltisKey.currentState?.placarAtual;
+      if (placar1Penaltis == null || placar2Penaltis == null) {
+        mostrarPopupAlerta(context, 'A partida final empatou. Por favor, insira o resultado dos pênaltis.');
+        return;
+      }
+      if (placar1Penaltis == placar2Penaltis) {
+        mostrarPopupAlerta(context, 'O placar dos pênaltis não pode ser um empate.');
+        return;
+      }
+    }
+
     int? placar1Penaltis;
     int? placar2Penaltis;
     if (_mostrarPenaltis) {
       placar1Penaltis = _placar1PenaltisKey.currentState?.placarAtual;
       placar2Penaltis = _placar2PenaltisKey.currentState?.placarAtual;
-      if (placar1Penaltis == placar2Penaltis) {
-        mostrarPopupAlerta(context, 'O placar dos pênaltis não pode ser um empate.');
-        return;
-      }
     }
 
     setState(() { _loading = true; });
@@ -126,6 +139,8 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
 
       // --- LÓGICA DE ALERTA DE RESET DA FINAL ---
       bool resetarFinal = false;
+
+      // CORREÇÃO: LÓGICA PARA PRESERVAR CAMPEÃO OU RESETAR A FINAL
       if (widget.partida.tipo == 'regular' && modo == ModoCampeonato.pontosCorridosIdaComFinal && dadosCampeonato['status'] == 'finalizado') {
           // 1. Pega os finalistas antigos
           final classificacaoAntigaRaw = (dadosCampeonato['classificacao'] as List);
@@ -225,6 +240,24 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
                   return;
               }
               resetarFinal = true;
+          } else {
+              // FINALISTAS NÃO MUDARAM: Este é o caso do bug.
+              // Apenas atualizamos a partida e a classificação, sem mexer no campeão.
+              WriteBatch batch = FirebaseFirestore.instance.batch();
+              batch.update(campeonatoRef.collection('partidas').doc(widget.partida.id), {
+                'placar1': placar1, 'placar2': placar2, 'finalizada': true,
+              });
+              
+              final classificacaoSimuladaParaSalvar = classificacaoSimulada.map((j) => {
+                'nome': j.nome, 'pontos': j.pontos, 'jogos': j.jogos, 'vitorias': j.vitorias,
+                'empates': j.empates, 'derrotas': j.derrotas, 'golsPro': j.golsPro,
+                'golsContra': j.golsContra, 'posicaoSorteio': j.posicaoSorteio,
+              }).toList();
+              batch.update(campeonatoRef, {'classificacao': classificacaoSimuladaParaSalvar});
+
+              await batch.commit();
+              if (mounted) Navigator.of(context).pop();
+              return; // Sai da função para não reprocessar o campeão indevidamente.
           }
       }
 
@@ -319,7 +352,6 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
         todasAsPartidas[indexPartidaAtual].placar2 = placar2;
       }
 
-      // *** CÓDIGO ADICIONADO AQUI ***
       final partidasRegulares = todasAsPartidas.where((p) => p.tipo == 'regular').toList();
 
       final bool isFinal = widget.partida.tipo == 'final';
@@ -398,7 +430,6 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
         'placar2Penaltis': placar2Penaltis,
       });
 
-      // *** NOVA LÓGICA PARA ATUALIZAR OS FINALISTAS ***
       if (isUltimaPartidaRegular && modo == ModoCampeonato.pontosCorridosIdaComFinal) {
           final finalDocQuery = await campeonatoRef.collection('partidas').where('tipo', isEqualTo: 'final').limit(1).get();
           if (finalDocQuery.docs.isNotEmpty) {
@@ -418,7 +449,6 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
           } else if (placar2 > placar1) {
             nomeCampeao = widget.partida.jogador2;
           } else { 
-            // *** MUDANÇA AQUI: Adiciona verificação de nulo para segurança ***
             nomeCampeao = ((placar1Penaltis ?? 0) > (placar2Penaltis ?? 0)) ? widget.partida.jogador1 : widget.partida.jogador2;
           }
         } else { // Pontos corridos simples
@@ -587,7 +617,7 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
                     
                     if (_mostrarPenaltis) _buildPenaltisCard(),
 
-                    const SizedBox(height: 70),
+                    const SizedBox(height: 10),
                     OutlinedButton(
                       onPressed: _loading ? null : _finalizarPartida,
                       style: OutlinedButton.styleFrom().copyWith(
