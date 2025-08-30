@@ -7,6 +7,7 @@ import 'package:app/theme/text_styles.dart';
 import 'package:app/utils/popup_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'tela_reset_senha.dart';
+import 'package:app/utils/validators.dart';
 
 class TelaLogin extends StatefulWidget {
   const TelaLogin({super.key});
@@ -48,12 +49,18 @@ class _TelaLoginState extends State<TelaLogin> {
   Future<void> _login() async {
     FocusScope.of(context).unfocus();
 
-    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
-      mostrarPopupAlerta(context, 'Por favor, preencha o e-mail e a senha.');
+    // CORREÇÃO: Adiciona a validação de formato de e-mail
+    final erroEmail = Validators.validateEmail(_emailController.text.trim());
+    if (erroEmail != null) {
+      mostrarPopupAlerta(context, erroEmail);
       return;
     }
 
-    // Ativa o loading
+    if (_passwordController.text.trim().isEmpty) {
+      mostrarPopupAlerta(context, 'Por favor, preencha a senha.');
+      return;
+    }
+
     setState(() {
       _loading = true;
     });
@@ -101,8 +108,8 @@ class _TelaLoginState extends State<TelaLogin> {
               TextButton(
                 child: const Text('Esqueceu a senha?'),
                 onPressed: () {
-                  Navigator.of(context).pop(); // Fecha o alerta
-                  _irParaTelaReset(); // Vai para a tela de reset
+                  Navigator.of(context).pop();
+                  _irParaTelaReset();
                 },
               ),
             ],
@@ -163,7 +170,7 @@ class _TelaLoginState extends State<TelaLogin> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: _passwordController,
-                    obscureText: _senhaObscura, // Usa a variável de estado
+                    obscureText: _senhaObscura,
                     decoration: InputDecoration(
                       labelText: 'Senha',
                       // *** LÓGICA CONDICIONAL DO SUFIXO ***
@@ -184,12 +191,10 @@ class _TelaLoginState extends State<TelaLogin> {
                             ),
                     ),
                   ),
-                  // BOTÃO ANTIGO REMOVIDO DAQUI
-                  const SizedBox(height: 32), // Aumenta o espaço após o campo de senha
+                  const SizedBox(height: 32),
                   Center(
                     child: OutlinedButton(
-                      // 3. O BOTÃO AGORA USA A VARIÁVEL _loading
-                      onPressed: _loading ? null : _login, // Desabilita o botão durante o loading
+                      onPressed: _loading ? null : _login,
                       style: OutlinedButton.styleFrom().copyWith(
                         minimumSize: WidgetStateProperty.all(const Size(150, 50)),
                       ),
