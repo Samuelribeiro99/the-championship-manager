@@ -16,7 +16,7 @@ class MatchRowWidget extends StatelessWidget {
   });
 
   // Helper para construir a linha de um jogador (Nome + Placar)
-  Widget _buildPlayerLine(String nome, int? placar) {
+  Widget _buildPlayerLine(String nome, int? placar, int? placarPenaltis) {
     return Row(
       children: [
         // Retângulo com o nome do jogador
@@ -45,8 +45,8 @@ class MatchRowWidget extends StatelessWidget {
         ),
         // Quadrado com o placar
         Container(
-          width: 50,
-          height: 50, // Altura correspondente
+          width: 70, // Aumenta a largura para caber os pênaltis
+          height: 50, 
           decoration: const BoxDecoration(
             border: Border.fromBorderSide(
               BorderSide(color: AppColors.borderYellow, width: 5),
@@ -57,14 +57,28 @@ class MatchRowWidget extends StatelessWidget {
             ),
           ),
           child: Center(
-            child: Text(
-              placar?.toString() ?? '-',
-              style: const TextStyle(
-                fontFamily: 'PostNoBillsColombo',
-                fontSize: 18,
-                fontWeight:
-                FontWeight.bold
-              ),
+            child: Row( // Usa uma Row para mostrar ambos os placares
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  placar?.toString() ?? '-',
+                  style: const TextStyle(
+                    fontFamily: 'PostNoBillsColombo',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (placarPenaltis != null)
+                  Text(
+                    " (${placarPenaltis})",
+                    style: const TextStyle(
+                      fontFamily: 'PostNoBillsColombo',
+                      fontSize: 14, // Fonte menor para pênaltis
+                      fontWeight: FontWeight.bold,
+                      // color: AppColors.textColor, // Cor diferente
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
@@ -74,6 +88,13 @@ class MatchRowWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Condição para mostrar os pênaltis
+    final bool mostrarPenaltis = partida.tipo == 'final' &&
+        partida.finalizada &&
+        partida.placar1 == partida.placar2 &&
+        partida.placar1Penaltis != null &&
+        partida.placar2Penaltis != null;
+
     // A linha inteira da partida
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -83,9 +104,9 @@ class MatchRowWidget extends StatelessWidget {
           Expanded(
             child: Column(
               children: [
-                _buildPlayerLine(partida.jogador1, partida.placar1),
+                _buildPlayerLine(partida.jogador1, partida.placar1, mostrarPenaltis ? partida.placar1Penaltis : null),
                 const SizedBox(height: 14),
-                _buildPlayerLine(partida.jogador2, partida.placar2),
+                _buildPlayerLine(partida.jogador2, partida.placar2, mostrarPenaltis ? partida.placar2Penaltis : null),
               ],
             ),
           ),

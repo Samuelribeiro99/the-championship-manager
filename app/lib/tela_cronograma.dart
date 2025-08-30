@@ -74,6 +74,8 @@ class _TelaCronogramaState extends State<TelaCronograma> {
       )
         ..placar1 = dados['placar1']
         ..placar2 = dados['placar2']
+        ..placar1Penaltis = dados['placar1Penaltis']
+        ..placar2Penaltis = dados['placar2Penaltis']
         ..finalizada = dados['finalizada'];
     }).toList();
 
@@ -116,6 +118,8 @@ class _TelaCronogramaState extends State<TelaCronograma> {
           )
             ..placar1 = partidaFinal.placar1
             ..placar2 = partidaFinal.placar2
+            ..placar1Penaltis = partidaFinal.placar1Penaltis
+            ..placar2Penaltis = partidaFinal.placar2Penaltis
             ..finalizada = partidaFinal.finalizada;
         }
       }
