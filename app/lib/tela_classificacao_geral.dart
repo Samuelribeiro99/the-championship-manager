@@ -187,28 +187,57 @@ class _TelaClassificacaoGeralState extends State<TelaClassificacaoGeral> {
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: DataTable(
-                            border: TableBorder.all(width: 2.0, color: AppColors.borderYellow),
-                            headingRowColor: WidgetStateProperty.all(AppColors.borderYellow.withOpacity(0.2)),
+                            border: TableBorder.all(
+                              width: 2.0,
+                              color: AppColors.borderYellow,
+                            ),
+                            headingRowColor: WidgetStateProperty.all(
+                              AppColors.borderYellow.withOpacity(0.2),
+                            ),
                             dividerThickness: 0,
                             horizontalMargin: 4,
                             columnSpacing: 0,
-                            columns: const [
-                              DataColumn(label: SizedBox(width: 150, child: Padding(padding: EdgeInsets.symmetric(horizontal: 8.0), child: Text('Participante', style: TextStyle(fontWeight: FontWeight.bold))))),
-                              DataColumn(label: SizedBox(width: 70, child: Center(child: Text('APR (%)', style: TextStyle(fontWeight: FontWeight.bold))))),
-                              DataColumn(label: SizedBox(width: 60, child: Center(child: Text('F', style: TextStyle(fontWeight: FontWeight.bold))))),
-                              DataColumn(label: SizedBox(width: 60, child: Center(child: Text('J', style: TextStyle(fontWeight: FontWeight.bold))))),
-                              DataColumn(label: SizedBox(width: 60, child: Center(child: Text('V', style: TextStyle(fontWeight: FontWeight.bold))))),
-                              DataColumn(label: SizedBox(width: 60, child: Center(child: Text('E', style: TextStyle(fontWeight: FontWeight.bold))))),
-                              DataColumn(label: SizedBox(width: 60, child: Center(child: Text('D', style: TextStyle(fontWeight: FontWeight.bold))))),
-                              DataColumn(label: SizedBox(width: 60, child: Center(child: Text('SG', style: TextStyle(fontWeight: FontWeight.bold))))),
-                              DataColumn(label: SizedBox(width: 60, child: Center(child: Text('GP', style: TextStyle(fontWeight: FontWeight.bold))))),
-                              DataColumn(label: SizedBox(width: 60, child: Center(child: Text('GC', style: TextStyle(fontWeight: FontWeight.bold))))),
-                              DataColumn(label: SizedBox(width: 70, child: Center(child: Text('MGP', style: TextStyle(fontWeight: FontWeight.bold))))),
-                              DataColumn(label: SizedBox(width: 70, child: Center(child: Text('MGC', style: TextStyle(fontWeight: FontWeight.bold))))),
+                            columns: [
+                              // AJUSTE AQUI
+                              DataColumn(
+                                label: Container(
+                                  constraints: const BoxConstraints(
+                                    minWidth: 80,
+                                    maxWidth: 150,
+                                  ),
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: Text('Participante', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                              ),
+                              const DataColumn(label: SizedBox(width: 70, child: Center(child: Text('APR (%)', style: TextStyle(fontWeight: FontWeight.bold))))),
+                              const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('F', style: TextStyle(fontWeight: FontWeight.bold))))),
+                              const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('J', style: TextStyle(fontWeight: FontWeight.bold))))),
+                              const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('V', style: TextStyle(fontWeight: FontWeight.bold))))),
+                              const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('E', style: TextStyle(fontWeight: FontWeight.bold))))),
+                              const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('D', style: TextStyle(fontWeight: FontWeight.bold))))),
+                              const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('SG', style: TextStyle(fontWeight: FontWeight.bold))))),
+                              const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('GP', style: TextStyle(fontWeight: FontWeight.bold))))),
+                              const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('GC', style: TextStyle(fontWeight: FontWeight.bold))))),
+                              const DataColumn(label: SizedBox(width: 70, child: Center(child: Text('MGP', style: TextStyle(fontWeight: FontWeight.bold))))),
+                              const DataColumn(label: SizedBox(width: 70, child: Center(child: Text('MGC', style: TextStyle(fontWeight: FontWeight.bold))))),
                             ],
                             rows: estatisticas.map((stats) => DataRow(
                               cells: [
-                                DataCell(SizedBox(width: 150, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8.0), child: Text(stats.nome, overflow: TextOverflow.ellipsis)))),
+                                // E AJUSTE AQUI
+                                DataCell(
+                                  Container(
+                                    constraints: const BoxConstraints(
+                                      minWidth: 80,
+                                      maxWidth: 150,
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: Text(stats.nome, overflow: TextOverflow.ellipsis),
+                                    ),
+                                  ),
+                                ),
                                 DataCell(SizedBox(width: 70, child: Center(child: Text(stats.aproveitamento.toStringAsFixed(1))))),
                                 DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalFinais.toString())))),
                                 DataCell(SizedBox(width: 60, child: Center(child: Text((stats.totalJogos + stats.totalFinais).toString())))),

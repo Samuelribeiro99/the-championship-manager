@@ -242,7 +242,6 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
           return BackgroundScaffold(body: Center(child: Text('Erro ao carregar dados: ${snapshot.error}')));
         }
         
-        // *** NOVA VARIÁVEL PARA SIMPLIFICAR O BUILD ***
         final bool isFinal = _proximaPartida?.tipo == 'final';
 
         return BackgroundScaffold(
@@ -258,13 +257,13 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
               ),
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 100, 16, 130), // Espaço para título e botões
+                  padding: const EdgeInsets.fromLTRB(16, 100, 16, 130),
+                  // MUDANÇA PRINCIPAL: Substituído SingleChildScrollView por Column
                   child: Column(
                     children: [
-                      // *** LÓGICA DO TÍTULO ATUALIZADA ***
+                      // PARTE FIXA (NÃO ROLÁVEL)
                       if (_proximaPartida != null)
                         Text(
-                          // Se for a final, mostra "Final", senão "Próxima partida"
                           isFinal ? 'Final' : 'Próxima partida',
                           style: AppTextStyles.screenTitle.copyWith(fontSize: 18),
                         )
@@ -274,12 +273,10 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                           style: AppTextStyles.screenTitle.copyWith(fontSize: 18),
                         ),
 
-                      // *** LÓGICA DO BOTÃO ATUALIZADA ***
                       if (_proximaPartida != null)
                         SelectionButton(
                           svgAsset: 'assets/icons/vai.svg',
                           onPressed: () {
-                            // A final só é jogável se os finalistas estiverem definidos
                             if (isFinal && !_finalistasDefinidos) return;
 
                             Navigator.push(
@@ -351,8 +348,8 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                       
                       const SizedBox(height: 12),
 
-                      // --- TABELA DE CLASSIFICAÇÃO (sem alterações) ---
-                      Expanded(
+                      // PARTE ROLÁVEL (TABELA)
+                      Flexible(
                         child: Container(
                           decoration: BoxDecoration(
                             border: Border.all(color: AppColors.borderYellow, width: 5),
@@ -426,13 +423,12 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                             ),
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
               ),
               
-              // --- BOTÕES DE RODAPÉ (sem alterações) ---
               Positioned(
                 bottom: 60,
                 left: 16,
