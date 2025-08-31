@@ -373,6 +373,7 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                                   horizontalMargin: 4,
                                   columnSpacing: 0,
                                   columns: [
+                                    const DataColumn(label: SizedBox(width: 30, child: Center(child: Text('#', style: TextStyle(fontWeight: FontWeight.bold))))),
                                     DataColumn(
                                       label: Container(
                                         constraints: const BoxConstraints(
@@ -385,39 +386,54 @@ class _TelaPrincipalCampeonatoState extends State<TelaPrincipalCampeonato> {
                                         ),
                                       ),
                                     ),
-                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('P')))),
-                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('J')))),
-                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('V')))),
-                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('E')))),
-                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('D')))),
-                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('SG')))),
-                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('GP')))),
-                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('GC')))),
+                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('P', style: TextStyle(fontWeight: FontWeight.bold))))),
+                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('J', style: TextStyle(fontWeight: FontWeight.bold))))),
+                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('V', style: TextStyle(fontWeight: FontWeight.bold))))),
+                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('E', style: TextStyle(fontWeight: FontWeight.bold))))),
+                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('D', style: TextStyle(fontWeight: FontWeight.bold))))),
+                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('SG', style: TextStyle(fontWeight: FontWeight.bold))))),
+                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('GP', style: TextStyle(fontWeight: FontWeight.bold))))),
+                                    const DataColumn(label: SizedBox(width: 60, child: Center(child: Text('GC', style: TextStyle(fontWeight: FontWeight.bold))))),
                                   ],
-                                  rows: _classificacao.map((j) => DataRow(
-                                    cells: [
-                                      DataCell(
-                                        Container(
-                                          constraints: const BoxConstraints(
-                                            minWidth: 80,
-                                            maxWidth: 150,
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                            child: Text(j.nome, overflow: TextOverflow.ellipsis),
+                                  rows: _classificacao.asMap().entries.map((entry) {
+                                    final index = entry.key;
+                                    final j = entry.value;
+                                    return DataRow(
+                                      cells: [
+                                        DataCell(
+                                          SizedBox(
+                                            width: 30,
+                                            child: Center(
+                                              child: Text(
+                                                '${index + 1}º',
+                                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      DataCell(SizedBox(width: 60, child: Center(child: Text(j.pontos.toString())))),
-                                      DataCell(SizedBox(width: 60, child: Center(child: Text(j.jogos.toString())))),
-                                      DataCell(SizedBox(width: 60, child: Center(child: Text(j.vitorias.toString())))),
-                                      DataCell(SizedBox(width: 60, child: Center(child: Text(j.empates.toString())))),
-                                      DataCell(SizedBox(width: 60, child: Center(child: Text(j.derrotas.toString())))),
-                                      DataCell(SizedBox(width: 60, child: Center(child: Text(j.saldoDeGols.toString())))),
-                                      DataCell(SizedBox(width: 60, child: Center(child: Text(j.golsPro.toString())))),
-                                      DataCell(SizedBox(width: 60, child: Center(child: Text(j.golsContra.toString())))),
-                                    ]
-                                  )).toList(),
+                                        DataCell(
+                                          Container(
+                                            constraints: const BoxConstraints(
+                                              minWidth: 80,
+                                              maxWidth: 150,
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                              child: Text(j.nome, overflow: TextOverflow.ellipsis),
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(SizedBox(width: 60, child: Center(child: Text(j.pontos.toString())))),
+                                        DataCell(SizedBox(width: 60, child: Center(child: Text(j.jogos.toString())))),
+                                        DataCell(SizedBox(width: 60, child: Center(child: Text(j.vitorias.toString())))),
+                                        DataCell(SizedBox(width: 60, child: Center(child: Text(j.empates.toString())))),
+                                        DataCell(SizedBox(width: 60, child: Center(child: Text(j.derrotas.toString())))),
+                                        DataCell(SizedBox(width: 60, child: Center(child: Text(j.saldoDeGols.toString())))),
+                                        DataCell(SizedBox(width: 60, child: Center(child: Text(j.golsPro.toString())))),
+                                        DataCell(SizedBox(width: 60, child: Center(child: Text(j.golsContra.toString())))),
+                                      ]
+                                    );
+                                  }).toList(),
                                 ),
                               ),
                             ),

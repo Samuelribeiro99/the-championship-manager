@@ -133,7 +133,6 @@ class _TelaClassificacaoGeralState extends State<TelaClassificacaoGeral> {
       'V: Vitórias\n'
       'E: Empates\n'
       'D: Derrotas\n'
-      'F: Finais Disputadas\n'
       'SG: Saldo de gols\n'
       'GP: Gols pró\n'
       'GC: Gols contra\n'
@@ -198,7 +197,7 @@ class _TelaClassificacaoGeralState extends State<TelaClassificacaoGeral> {
                             horizontalMargin: 4,
                             columnSpacing: 0,
                             columns: [
-                              // AJUSTE AQUI
+                              const DataColumn(label: SizedBox(width: 30, child: Center(child: Text('#', style: TextStyle(fontWeight: FontWeight.bold))))),
                               DataColumn(
                                 label: Container(
                                   constraints: const BoxConstraints(
@@ -223,34 +222,48 @@ class _TelaClassificacaoGeralState extends State<TelaClassificacaoGeral> {
                               const DataColumn(label: SizedBox(width: 70, child: Center(child: Text('MGP', style: TextStyle(fontWeight: FontWeight.bold))))),
                               const DataColumn(label: SizedBox(width: 70, child: Center(child: Text('MGC', style: TextStyle(fontWeight: FontWeight.bold))))),
                             ],
-                            rows: estatisticas.map((stats) => DataRow(
-                              cells: [
-                                // E AJUSTE AQUI
-                                DataCell(
-                                  Container(
-                                    constraints: const BoxConstraints(
-                                      minWidth: 80,
-                                      maxWidth: 150,
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                      child: Text(stats.nome, overflow: TextOverflow.ellipsis),
+                            rows: estatisticas.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final stats = entry.value;
+                              return DataRow(
+                                cells: [
+                                  DataCell(
+                                    SizedBox(
+                                      width: 30,
+                                      child: Center(
+                                        child: Text(
+                                          '${index + 1}º',
+                                          style: const TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                DataCell(SizedBox(width: 70, child: Center(child: Text(stats.aproveitamento.toStringAsFixed(1))))),
-                                DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalFinais.toString())))),
-                                DataCell(SizedBox(width: 60, child: Center(child: Text((stats.totalJogos + stats.totalFinais).toString())))),
-                                DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalVitorias.toString())))),
-                                DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalEmpates.toString())))),
-                                DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalDerrotas.toString())))),
-                                DataCell(SizedBox(width: 60, child: Center(child: Text(stats.saldoDeGols.toString())))),
-                                DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalGolsPro.toString())))),
-                                DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalGolsContra.toString())))),
-                                DataCell(SizedBox(width: 70, child: Center(child: Text(stats.mediaGolsPro.toStringAsFixed(2))))),
-                                DataCell(SizedBox(width: 70, child: Center(child: Text(stats.mediaGolsContra.toStringAsFixed(2))))),
-                              ]
-                            )).toList(),
+                                  DataCell(
+                                    Container(
+                                      constraints: const BoxConstraints(
+                                        minWidth: 80,
+                                        maxWidth: 150,
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                        child: Text(stats.nome, overflow: TextOverflow.ellipsis),
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(SizedBox(width: 70, child: Center(child: Text(stats.aproveitamento.toStringAsFixed(1))))),
+                                  DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalFinais.toString())))),
+                                  DataCell(SizedBox(width: 60, child: Center(child: Text((stats.totalJogos + stats.totalFinais).toString())))),
+                                  DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalVitorias.toString())))),
+                                  DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalEmpates.toString())))),
+                                  DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalDerrotas.toString())))),
+                                  DataCell(SizedBox(width: 60, child: Center(child: Text(stats.saldoDeGols.toString())))),
+                                  DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalGolsPro.toString())))),
+                                  DataCell(SizedBox(width: 60, child: Center(child: Text(stats.totalGolsContra.toString())))),
+                                  DataCell(SizedBox(width: 70, child: Center(child: Text(stats.mediaGolsPro.toStringAsFixed(2))))),
+                                  DataCell(SizedBox(width: 70, child: Center(child: Text(stats.mediaGolsContra.toStringAsFixed(2))))),
+                                ]
+                              );
+                            }).toList(),
                           ),
                         ),
                       ),
