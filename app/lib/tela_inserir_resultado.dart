@@ -454,17 +454,26 @@ class _TelaInserirResultadoState extends State<TelaInserirResultado> {
         } else { // Pontos corridos simples
           nomeCampeao = classificacaoAtual[0].nome;
         }
+        
+        String trofeuUrlSorteado;
 
-        final listaDeTrofeus = [
-          'assets/trofeus/trofeu1.png',
-          'assets/trofeus/trofeu2.png',
-          'assets/trofeus/trofeu3.png',
-          'assets/trofeus/trofeu4.png',
-          'assets/trofeus/trofeu5.png',
-          'assets/trofeus/trofeu6.png',
-          'assets/trofeus/trofeu7.png',
-        ];
-        final trofeuUrlSorteado = listaDeTrofeus[Random().nextInt(listaDeTrofeus.length)];
+        final nomeCampeonato = dadosCampeonato['nome'] ?? '';
+
+        if (nomeCampeonato == 'Copa Fael 10 anos') {
+          trofeuUrlSorteado = 'assets/trofeus/trofeu_copa_fael_10_anos.png';
+        } else {
+          // Lógica padrão de sorteio para outros campeonatos
+          final listaDeTrofeus = [
+            'assets/trofeus/trofeu1.png',
+            'assets/trofeus/trofeu2.png',
+            'assets/trofeus/trofeu3.png',
+            'assets/trofeus/trofeu4.png',
+            'assets/trofeus/trofeu5.png',
+            'assets/trofeus/trofeu6.png',
+            'assets/trofeus/trofeu7.png',
+          ];
+          trofeuUrlSorteado = listaDeTrofeus[Random().nextInt(listaDeTrofeus.length)];
+        }
         batch.update(campeonatoRef, {
           'status': 'finalizado',
           'trofeuUrl': trofeuUrlSorteado,
